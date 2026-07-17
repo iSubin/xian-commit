@@ -1,0 +1,115 @@
+#!/bin/sh
+# hooks/post-commit
+# push.mode=auto-safe 时,在 commit 完成后执行安全普通 push。
+# post-commit 已在本地提交之后运行;本 hook 不阻断 commit,只负责尝试 remote delivery close。
+
+set -f
+
+POLICY_FILE="${XIAN_COMMIT_CONFIG:-.xian-commit/config}"
+
+policy_value() {
+    key="$1"
+    [ -f "$POLICY_FILE" ] || return 0
+    awk -F= -v key="$key" '
+        $0 ~ /^[[:space:]]*#/ { next }
+        $0 !~ /=/ { next }
+        {
+            k=$1
+            sub(/^[[:space:]]+/, "", k)
+            sub(/[[:space:]]+$/, "", k)
+            if (k == key) {
+                sub(/^[^=]*=/, "")
+                sub(/^[[:space:]]+/, "")
+                sub(/[[:space:]]+$/, "")
+                print
+                exit
+            }
+        }
+    ' "$POLICY_FILE"
+}
+
+skip_auto_push() {
+    reason="$1"
+    cat >&2 <<EOF
+xian-commit post-commit: 跳过 auto-safe push。
+原因:$reason
+EOF
+    exit 0
+}
+
+push_mode=$(policy_value "push.mode")
+[ -z "$push_mode" ] && push_mode="explicit-only"
+
+case "$push_mode" in
+    auto-safe) ;;
+    explicit-only|"")
+        exit 0
+        ;;
+    never|disabled)
+        skip_auto_push "policy 设置 push.mode=${push_mode}。"
+        ;;
+    *)
+        skip_auto_push "未知 push.mode=${push_mode}。"
+        ;;
+esac
+
+current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ -z "$current_branch" ] || [ "$current_branch" = "HEAD" ]; then
+    skip_auto_push "当前不是普通分支。"
+fi
+
+protected_branches=$(policy_value "branch.protected")
+for pattern in $protected_branches; do
+    [ -z "$pattern" ] && continue
+    case "$current_branch" in
+        $pattern)
+            skip_auto_push "当前分支 $current_branch 匹配 protected branch policy '$pattern'。"
+            ;;
+    esac
+done
+
+if [ -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]; then
+    skip_auto_push "tracked/staged worktree 不干净。"
+fi
+
+upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)
+if [ -z "$upstream" ]; then
+    skip_auto_push "当前分支 $current_branch 没有 upstream。"
+fi
+
+remote_name=${upstream%%/*}
+remote_branch=${upstream#*/}
+remote_head=$(git ls-remote "$remote_name" "$remote_branch" 2>/dev/null | awk '{print $1}')
+if [ -z "$remote_head" ]; then
+    skip_auto_push "无法读取 upstream $upstream 的 remote head。"
+fi
+
+local_head=$(git rev-parse HEAD 2>/dev/null)
+if [ -z "$local_head" ]; then
+    skip_auto_push "无法读取本地 HEAD。"
+fi
+
+if ! git merge-base --is-ancestor "$remote_head" "$local_head" 2>/dev/null; then
+    skip_auto_push "当前分支 $current_branch 相对 $upstream behind 或 diverged。"
+fi
+
+ahead_count=$(git rev-list --count "$remote_head"..HEAD 2>/dev/null)
+case "$ahead_count" in
+    ''|*[!0-9]*) ahead_count=0 ;;
+esac
+if [ "$ahead_count" -le 0 ]; then
+    skip_auto_push "当前分支没有 ahead commit。"
+fi
+
+cat >&2 <<EOF
+xian-commit post-commit: auto-safe 条件满足,执行普通 git push。
+EOF
+if ! git push "$remote_name" "HEAD:$remote_branch"; then
+    cat >&2 <<EOF
+xian-commit post-commit: auto-safe push 失败,本地 commit 已完成。
+请手动检查后执行:
+  git push "$remote_name" "HEAD:$remote_branch"
+EOF
+fi
+
+exit 0

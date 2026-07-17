@@ -1,0 +1,124 @@
+#!/bin/sh
+# hooks/pre-commit
+# 校验 staged 文件路径,拒绝黑名单文件
+# 失败时 exit 1,git commit 中止
+
+# 禁用 glob 展开,防止 $BLACKLIST_PATTERNS 在 for 循环中被当前目录文件替换
+set -f
+
+POLICY_FILE="${XIAN_COMMIT_CONFIG:-.xian-commit/config}"
+
+policy_value() {
+    key="$1"
+    [ -f "$POLICY_FILE" ] || return 0
+    awk -F= -v key="$key" '
+        $0 ~ /^[[:space:]]*#/ { next }
+        $0 !~ /=/ { next }
+        {
+            k=$1
+            sub(/^[[:space:]]+/, "", k)
+            sub(/[[:space:]]+$/, "", k)
+            if (k == key) {
+                sub(/^[^=]*=/, "")
+                sub(/^[[:space:]]+/, "")
+                sub(/[[:space:]]+$/, "")
+                print
+                exit
+            }
+        }
+    ' "$POLICY_FILE"
+}
+
+# allowlist 先于 denylist 生效,用于协议证据或项目明确允许的审计产物。
+ALLOW_PATTERNS="
+docs/xian-harness/changes/*/.change-transition.log
+docs/xian-harness/changes/*/verify/evidence/logs/*.log
+docs/xian-harness/evidence/*/*.log
+cases/*/docs/xian-harness/changes/*/.change-transition.log
+cases/*/docs/xian-harness/changes/*/verify/evidence/logs/*.log
+cases/*/docs/xian-harness/evidence/*/*.log
+"
+
+configured_allow=$(policy_value "path.allow")
+if [ -n "$configured_allow" ]; then
+    ALLOW_PATTERNS="$ALLOW_PATTERNS
+$configured_allow"
+fi
+
+# 黑名单模式(glob),任一匹配则拦截
+# 注意:不要太宽,避免误杀合法文件(如 debug.py)
+BLACKLIST_PATTERNS="
+.xian-relay*
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.env
+*.env.local
+*.env.*.local
+id_rsa
+id_dsa
+id_ed25519
+id_ecdsa
+*_tmp.py
+*_tmp.*
+*.bak
+"
+
+configured_deny=$(policy_value "path.deny")
+if [ -n "$configured_deny" ]; then
+    BLACKLIST_PATTERNS="$BLACKLIST_PATTERNS
+$configured_deny"
+fi
+
+# 取 staged 文件
+staged_files=$(git diff --cached --name-only)
+
+if [ -z "$staged_files" ]; then
+    exit 0
+fi
+
+violations=""
+for file in $staged_files; do
+    allowed=0
+    for pattern in $ALLOW_PATTERNS; do
+        [ -z "$pattern" ] && continue
+        case "$file" in
+            $pattern)
+                allowed=1
+                break
+                ;;
+        esac
+    done
+    if [ "$allowed" -eq 1 ]; then
+        continue
+    fi
+
+    for pattern in $BLACKLIST_PATTERNS; do
+        # 跳过空行
+        [ -z "$pattern" ] && continue
+        # 用 case 做 glob 匹配
+        case "$file" in
+            $pattern)
+                violations="$violations
+  - $file   (匹配黑名单 $pattern)"
+                break
+                ;;
+        esac
+    done
+done
+
+if [ -n "$violations" ]; then
+    cat >&2 <<EOF
+xian-commit pre-commit: 拒绝提交以下文件,请先从 staged 移除:
+$violations
+
+修复:
+  git reset HEAD <files>
+EOF
+    exit 1
+fi
+
+exit 0

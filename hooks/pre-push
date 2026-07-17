@@ -1,0 +1,113 @@
+#!/bin/sh
+# hooks/pre-push
+# 校验 push 安全:behind 检测
+# 入参: stdin = <local_ref> <local_sha> <remote_ref> <remote_sha> 每行一组
+#        git 在 non-fast-forward 时可能不提供 stdin,所以本 hook 不依赖 stdin,
+#        主动用 git rev-list 检测当前分支相对 upstream 的 ahead/behind 状态
+# 失败时 exit 1,git push 中止
+
+set -f
+
+POLICY_FILE="${XIAN_COMMIT_CONFIG:-.xian-commit/config}"
+
+policy_value() {
+    key="$1"
+    [ -f "$POLICY_FILE" ] || return 0
+    awk -F= -v key="$key" '
+        $0 ~ /^[[:space:]]*#/ { next }
+        $0 !~ /=/ { next }
+        {
+            k=$1
+            sub(/^[[:space:]]+/, "", k)
+            sub(/[[:space:]]+$/, "", k)
+            if (k == key) {
+                sub(/^[^=]*=/, "")
+                sub(/^[[:space:]]+/, "")
+                sub(/[[:space:]]+$/, "")
+                print
+                exit
+            }
+        }
+    ' "$POLICY_FILE"
+}
+
+# 检测当前分支
+current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ -z "$current_branch" ] || [ "$current_branch" = "HEAD" ]; then
+    # detached HEAD,无法判断,放行
+    exit 0
+fi
+
+push_mode=$(policy_value "push.mode")
+if [ "$push_mode" = "never" ] || [ "$push_mode" = "disabled" ]; then
+    cat >&2 <<EOF
+xian-commit pre-push: 拒绝 push。
+
+原因:policy 设置 push.mode=never。
+EOF
+    exit 1
+fi
+
+protected_branches=$(policy_value "branch.protected")
+for pattern in $protected_branches; do
+    [ -z "$pattern" ] && continue
+    case "$current_branch" in
+        $pattern)
+            cat >&2 <<EOF
+xian-commit pre-push: 拒绝 push。
+
+原因:当前分支 $current_branch 匹配 protected branch policy '$pattern'。
+EOF
+            exit 1
+            ;;
+    esac
+done
+
+# 取 upstream
+upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null)
+if [ -z "$upstream" ]; then
+    # 没有 upstream,警告但不拦
+    cat >&2 <<EOF
+xian-commit pre-push: 警告 - 当前分支 $current_branch 没有 upstream。
+
+提示:首次 push 需设置 upstream:
+  git push -u origin ${current_branch}
+EOF
+    exit 0
+fi
+
+# 主动从 remote 取最新 sha(用 fetch 但不修改本地 ref)
+remote_name=${upstream%%/*}
+remote_branch=${upstream#*/}
+
+# 用 ls-remote 实时查 remote 状态
+remote_head=$(git ls-remote "$remote_name" "$remote_branch" 2>/dev/null | awk '{print $1}')
+
+# 网络问题或 remote 不存在,放行(不阻断 push)
+if [ -z "$remote_head" ]; then
+    exit 0
+fi
+
+local_head=$(git rev-parse HEAD 2>/dev/null)
+
+# 检查 local 是否包含 remote_head 作为祖先
+# 是祖先 → local 是 ahead 或等于 remote,安全 push
+# 不是祖先 → local 落后 remote(behind),拦
+if ! git merge-base --is-ancestor "$remote_head" "$local_head" 2>/dev/null; then
+    # 计算 behind 多少 commit
+    behind_count=$(git rev-list --count HEAD.."$remote_head" 2>/dev/null)
+    [ -z "$behind_count" ] && behind_count="?"
+
+    cat >&2 <<EOF
+xian-commit pre-push: 拒绝 push。
+
+原因:当前分支 $current_branch 落后 ${upstream}(${behind_count} 个 commit)。
+
+修复:
+  git pull --rebase ${remote_name} ${remote_branch}
+  git push
+EOF
+    exit 1
+fi
+
+exit 0

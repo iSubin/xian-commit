@@ -1,0 +1,22 @@
+# xian-commit local/runtime ignores
+.xian-harness/
+.xian-relay/
+
+# editor / OS noise
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.bak
+
+# local secrets
+.env
+.env.local
+.env.*.local
+id_rsa
+id_dsa
+id_ed25519
+id_ecdsa
+*.pem

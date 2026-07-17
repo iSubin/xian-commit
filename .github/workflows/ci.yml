@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify shell scripts syntax
+        run: |
+          for f in hooks/* install.sh tests/*.sh; do
+            [ -f "$f" ] || continue
+            sh -n "$f" || { echo "syntax error in $f"; exit 1; }
+          done
+
+      - name: Run tests
+        run: sh tests/run_tests.sh
+
+      - name: Smoke test install.sh
+        run: |
+          TMP=$(mktemp -d)
+          cd "$TMP"
+          git init -q
+          git config user.email t@t.t
+          git config user.name t
+          git config commit.gpgsign false
+          sh "$GITHUB_WORKSPACE/install.sh"
+          test -x .git/hooks/pre-commit
+          test -x .git/hooks/commit-msg
+          test -x .git/hooks/pre-push
+          echo x > a.txt
+          git add a.txt
+          if git commit -m "bad" 2>/dev/null; then
+            echo "FAIL: bad commit should be rejected"
+            exit 1
+          fi
+          echo "PASS: install + commit-msg hook working"
+          cd /tmp
+          rm -rf "$TMP"

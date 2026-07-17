@@ -1,0 +1,150 @@
+#!/bin/sh
+# hooks/commit-msg
+# 校验 commit message 规范
+# 入参: $1 = commit message 文件路径
+# 失败时 exit 1,git commit 中止
+
+set -f
+
+POLICY_FILE="${XIAN_COMMIT_CONFIG:-.xian-commit/config}"
+
+policy_value() {
+    key="$1"
+    [ -f "$POLICY_FILE" ] || return 0
+    awk -F= -v key="$key" '
+        $0 ~ /^[[:space:]]*#/ { next }
+        $0 !~ /=/ { next }
+        {
+            k=$1
+            sub(/^[[:space:]]+/, "", k)
+            sub(/[[:space:]]+$/, "", k)
+            if (k == key) {
+                sub(/^[^=]*=/, "")
+                sub(/^[[:space:]]+/, "")
+                sub(/[[:space:]]+$/, "")
+                print
+                exit
+            }
+        }
+    ' "$POLICY_FILE"
+}
+
+MSG_FILE="$1"
+
+if [ -z "$MSG_FILE" ] || [ ! -f "$MSG_FILE" ]; then
+    echo "xian-commit commit-msg: 缺少 message 文件参数" >&2
+    exit 1
+fi
+
+MSG=$(cat "$MSG_FILE")
+
+TYPE_WHITELIST=$(policy_value "message.types")
+[ -z "$TYPE_WHITELIST" ] && TYPE_WHITELIST="feat fix refactor docs test chore"
+TITLE_LANGUAGE=$(policy_value "message.title_language")
+[ -z "$TITLE_LANGUAGE" ] && TITLE_LANGUAGE="zh"
+BODY_REQUIRED=$(policy_value "message.body_required")
+[ -z "$BODY_REQUIRED" ] && BODY_REQUIRED="true"
+
+errors=""
+
+# 提取首行
+first_line=$(printf '%s\n' "$MSG" | awk 'NR==1')
+
+# 校验 1: 首行有冒号分隔的 type
+case "$first_line" in
+    *:*) ;;
+    *)
+        errors="$errors
+  - 首行缺少 type 前缀(应为 '<type>: <标题>')"
+        ;;
+esac
+
+# 解析 type 和 title
+type_part=${first_line%%:*}
+title_part=${first_line#*:}
+title_part=$(printf '%s' "$title_part" | sed 's/^ //')
+
+# 校验 2: type 在白名单
+type_valid=0
+for t in $TYPE_WHITELIST; do
+    if [ "$type_part" = "$t" ]; then
+        type_valid=1
+        break
+    fi
+done
+if [ "$type_valid" -eq 0 ]; then
+    errors="$errors
+  - type '$type_part' 不在白名单(允许: $TYPE_WHITELIST)"
+fi
+
+# 校验 3: 标题不为空
+if [ -z "$title_part" ]; then
+    errors="$errors
+  - 标题为空"
+fi
+
+# 校验 4: 标题不含 type 前缀(防 feat: feat ...)
+for t in $TYPE_WHITELIST; do
+    case "$title_part" in
+        "$t:"*|"$t: "*|"$t "*)
+            errors="$errors
+  - 标题包含 type 前缀 '$t:'(标题不应重复 type)"
+            ;;
+    esac
+done
+
+# 校验 5: 标题含中文(用 perl 检测 CJK 范围,Mac/Linux 标配)
+if [ "$TITLE_LANGUAGE" = "zh" ]; then
+    has_chinese=$(printf '%s' "$title_part" | perl -CSD -ne 'if (/[\x{4E00}-\x{9FFF}]/) { print "yes"; exit }')
+    if [ -z "$has_chinese" ]; then
+        errors="$errors
+  - 标题 '$title_part' 不含中文(默认要求中文标题)"
+    fi
+fi
+
+# 校验 6: 无 emoji(perl 检测 Unicode emoji 范围,匹配则输出 yes)
+emoji_detected=$(printf '%s' "$MSG" | perl -CSD -ne 'if (/[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}\x{1F000}-\x{1F0FF}]/) { print "yes"; exit }')
+if [ -n "$emoji_detected" ]; then
+    errors="$errors
+  - message 含 emoji(禁止)"
+fi
+
+# 校验 7: 第二行必须空行(如果有第二行)
+second_line=$(printf '%s\n' "$MSG" | awk 'NR==2')
+total_nonempty=$(printf '%s\n' "$MSG" | awk 'NR>1 && NF>0' | wc -l | tr -d ' ')
+if [ "$total_nonempty" -gt 0 ] && [ -n "$second_line" ]; then
+    errors="$errors
+  - 第二行应为空行(标题与正文之间)"
+fi
+
+# 校验 8: 必须有正文(第二行之后非空)
+body=$(printf '%s\n' "$MSG" | awk 'NR>2')
+body_trimmed=$(printf '%s' "$body" | tr -d ' \n\t')
+if [ "$BODY_REQUIRED" != "false" ] && [ -z "$body_trimmed" ]; then
+    errors="$errors
+  - 缺少正文(必须说明改了什么 / 为什么改 / 影响范围)"
+fi
+
+# 输出错误
+if [ -n "$errors" ]; then
+    preview=$(printf '%s\n' "$MSG" | head -n 5)
+    cat >&2 <<EOF
+xian-commit commit-msg: commit message 不符合规范。
+
+当前 message:
+$preview
+
+问题:$errors
+
+期望格式:
+  <type>: <纯中文简短标题>
+
+  <中文正文,说明改了什么 / 为什么改 / 影响范围>
+
+type 白名单: $TYPE_WHITELIST
+详细规范: prompts/commit-message.md
+EOF
+    exit 1
+fi
+
+exit 0
