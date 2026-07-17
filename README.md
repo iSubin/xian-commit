@@ -2,7 +2,9 @@
 
 [English](README_EN.md) · [![CI](https://github.com/iSubin/xian-commit/actions/workflows/ci.yml/badge.svg)](https://github.com/iSubin/xian-commit/actions/workflows/ci.yml) · [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-给 AI Coding Agent 用的 Git 交付安全护栏：让 Agent 继续使用标准 Git，同时在提交范围、Commit Message 和推送边界提供可配置的确定性校验。
+**xian-commit 是一个可安装到 Codex、Claude Code 等 AI Coding Agent 项目中的 Git 交付治理 Skill。**
+
+它让 Agent 继续使用标准 Git，同时在提交范围、Commit Message 和推送边界提供可配置的确定性校验；配套 Git Hooks 是这个 Skill 的确定性执行层。
 
 它不是 Node/Python 包，也不是常驻服务；运行时依赖 Git、兼容 POSIX 的 shell 与标准 Unix 工具，以及用于中文与 emoji 提交信息检查的 Perl。
 
@@ -33,6 +35,39 @@ sh /path/to/xian-commit/install.sh verify
 默认安装会写入 Codex 与 Claude Code 的 Skill、提交信息 prompt、lifecycle 参考脚本、policy 和四个 hooks。已有 `.xian-commit/config` 会保留，不会被安装或更新覆盖。
 
 hooks 会从下一次 `git commit` 或 `git push` 起生效。若 Codex 或 Claude Code 会话已经打开，请在目标项目中重新打开会话，让项目级 Skills 被重新扫描。
+
+## 推荐的项目接入方式
+
+安装器只管理 xian-commit 自己的 Skill、prompt、policy 和 hooks，**不会自动修改目标项目的 `AGENTS.md` 或 `CLAUDE.md`**。这两个文件属于目标项目，里面通常还有架构、测试和业务约束；由安装器直接改写并不安全。
+
+推荐按以下顺序接入：
+
+1. 在目标仓库运行安装和 `verify`。
+2. 检查 `.xian-commit/config`，按团队习惯选择 `auto-safe`、`explicit-only` 或 `never`。
+3. 重新打开 Codex / Claude Code 会话，让项目级 Skill 被重新扫描。
+4. 用一次小改动实际执行 commit；确认 hook 提示、提交信息和 push 边界符合预期后，再推广到团队。
+
+如果 Agent 能稳定发现项目级 Skills，不需要再改入口文件。如果希望把 Git 交付入口写得更明确，可以在目标项目已有的文件中增加一条简短路由。
+
+`AGENTS.md`（Codex / 通用 Agent）：
+
+```markdown
+## Git 交付
+
+涉及 commit、push 或交付收口时，使用项目级 `.codex/skills/xian-commit/SKILL.md`，
+并遵守 `.xian-commit/config`；不得绕过 Git Hooks。
+```
+
+`CLAUDE.md`（Claude Code）：
+
+```markdown
+## Git 交付
+
+涉及 commit、push 或交付收口时，使用项目级 `.claude/skills/xian-commit/SKILL.md`，
+并遵守 `.xian-commit/config`；不得绕过 Git Hooks。
+```
+
+入口文件只负责告诉 Agent“什么时候使用 xian-commit”。完整流程继续以安装后的 `SKILL.md` 为准，项目策略以 `.xian-commit/config` 为准，确定性拦截以 Git Hooks 为准。不要把整份 Skill 复制进 `AGENTS.md` / `CLAUDE.md`，否则升级后容易出现多份规则不一致。
 
 ## 它是怎么工作的
 

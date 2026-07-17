@@ -2,7 +2,9 @@
 
 [简体中文](README.md) · [![CI](https://github.com/iSubin/xian-commit/actions/workflows/ci.yml/badge.svg)](https://github.com/iSubin/xian-commit/actions/workflows/ci.yml) · [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A Git delivery safety guardrail for AI Coding Agents: keep using standard Git while adding configurable, deterministic checks for staged scope, commit messages, and push boundaries.
+**xian-commit is an installable Git delivery governance Skill for AI Coding Agents such as Codex and Claude Code.**
+
+It keeps Agents on standard Git while adding configurable, deterministic checks for staged scope, commit messages, and push boundaries. The bundled Git hooks are the Skill's deterministic enforcement layer.
 
 It is not a Node/Python package or a resident service. Runtime prerequisites are Git, a POSIX-compatible shell with standard Unix tools, and Perl for Chinese- and emoji-related commit-message checks.
 
@@ -33,6 +35,41 @@ sh /path/to/xian-commit/install.sh verify
 The default installation writes the Codex and Claude Code Skills, a commit-message prompt, lifecycle reference scripts, policy, and four hooks. An existing `.xian-commit/config` is preserved; installation and updates never overwrite it.
 
 Hooks activate from the next `git commit` or `git push`. If a Codex or Claude Code session is already open, reopen the session in the target project so project-level Skills are rescanned.
+
+## Recommended project integration
+
+The installer manages only xian-commit's own Skill, prompt, policy, and hooks. It **does not automatically modify the target project's `AGENTS.md` or `CLAUDE.md`**. Those files belong to the target project and often contain architecture, testing, and business constraints, so rewriting them from an installer would be unsafe.
+
+The recommended integration sequence is:
+
+1. Run the installer and `verify` in the target repository.
+2. Review `.xian-commit/config` and choose `auto-safe`, `explicit-only`, or `never` for the team's workflow.
+3. Reopen the Codex or Claude Code session so the project-level Skill is rescanned.
+4. Exercise the setup with one small commit. Confirm the hook messages, commit format, and push boundary before rolling it out to the team.
+
+If the Agent reliably discovers project-level Skills, no entry-file change is required. If the repository should make the Git delivery entry point explicit, add a short routing rule to its existing project instructions.
+
+For `AGENTS.md` (Codex or general Agents):
+
+```markdown
+## Git delivery
+
+For commits, pushes, or delivery closeout, use the project-level
+`.codex/skills/xian-commit/SKILL.md`, follow `.xian-commit/config`,
+and never bypass the Git hooks.
+```
+
+For `CLAUDE.md` (Claude Code):
+
+```markdown
+## Git delivery
+
+For commits, pushes, or delivery closeout, use the project-level
+`.claude/skills/xian-commit/SKILL.md`, follow `.xian-commit/config`,
+and never bypass the Git hooks.
+```
+
+The entry file should only tell the Agent when to use xian-commit. The installed `SKILL.md` remains the workflow source of truth, `.xian-commit/config` owns project policy, and Git hooks provide deterministic enforcement. Do not copy the full Skill into `AGENTS.md` or `CLAUDE.md`; duplicated rules are likely to drift after updates.
 
 ## How it works
 
