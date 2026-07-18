@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "changeId": "fix-install-update-safety",
+  "phase": "spec",
+  "status": "pass",
+  "generatedAt": "2026-07-18T23:21:29+08:00",
+  "summary": "验收标准与修复边界已明确",
+  "missingFacts": [],
+  "requirementFacts": {
+    "requirementsDefined": true,
+    "boundariesDefined": true,
+    "acceptanceCriteriaDefined": true,
+    "nonGoalsDefined": true,
+    "verificationMapped": true
+  }
+}

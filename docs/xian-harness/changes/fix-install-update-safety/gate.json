@@ -1,0 +1,306 @@
+{
+  "version": 1,
+  "changeId": "fix-install-update-safety",
+  "target": "<target-project>",
+  "status": "pass",
+  "startedAt": "2026-07-18T23:35:38+08:00",
+  "finishedAt": "2026-07-18T23:35:40+08:00",
+  "qualityGateDir": "docs/xian-harness/changes/fix-install-update-safety",
+  "gateResultPath": "docs/xian-harness/changes/fix-install-update-safety/gate.json",
+  "issuesPath": "docs/xian-harness/changes/fix-install-update-safety/gate.json",
+  "reportPath": "docs/xian-harness/changes/fix-install-update-safety/gate.json",
+  "inputs": {
+    "verificationStatus": "pass",
+    "staleVerificationEvidence": null,
+    "ruoyiDetected": false,
+    "ruoyiVerifyPolicyPath": null,
+    "ruoyiCheckSummary": null,
+    "packStatusPath": null,
+    "packStatusSummary": null,
+    "acceptancePath": "docs/xian-harness/changes/fix-install-update-safety/acceptance-criteria.md",
+    "acceptanceSummary": {
+      "status": "pass",
+      "checked": 8,
+      "unchecked": 0,
+      "checklistTotal": 8,
+      "placeholderCount": 0
+    },
+    "acceptanceCoverageSummary": {
+      "status": "not-applicable",
+      "requiredSmokeScripts": [],
+      "matchedSmokeScripts": [],
+      "missingSmokeScripts": []
+    },
+    "verificationRegistrySummary": {
+      "status": "pass",
+      "sourcePath": "docs/xian-harness/changes/fix-install-update-safety/acceptance-criteria.md",
+      "passedCommands": [
+        "sh tests/test_install.sh \"$PWD\"",
+        "rg -n \"更新已有工程|Update an existing project|core\\.hooksPath|\\.xian-commit/config\" README.md README_EN.md",
+        "sh -n install.sh",
+        "git diff --check"
+      ],
+      "matchedRuleIds": [
+        "install.update.regression",
+        "readme.lifecycle.docs",
+        "install.syntax",
+        "change.diff-check"
+      ],
+      "missingRuleIds": [],
+      "rules": [
+        {
+          "id": "install.update.regression",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "sh tests/test_install.sh \"$PWD\"",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "command:exact:sh tests/test_install.sh \"$PWD\""
+          ],
+          "mismatch": null
+        },
+        {
+          "id": "readme.lifecycle.docs",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "rg -n \"更新已有工程|Update an existing project|core\\\\.hooksPath|\\\\.xian-commit/config\" README.md README_EN.md",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "command:normalized:rg -n \"更新已有工程|Update an existing project|core\\\\.hooksPath|\\\\.xian-commit/config\" README.md README_EN.md"
+          ],
+          "mismatch": null
+        },
+        {
+          "id": "install.syntax",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "sh -n install.sh",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "command:exact:sh -n install.sh"
+          ],
+          "mismatch": null
+        },
+        {
+          "id": "change.diff-check",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "git diff --check",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "command:exact:git diff --check"
+          ],
+          "mismatch": null
+        }
+      ]
+    },
+    "registryLintSummary": null,
+    "skillRegistrySummary": null,
+    "templateRegistrySummary": null,
+    "standardRegistrySummary": null,
+    "lifecycleContractSummary": null,
+    "agentPairReviewSummary": {
+      "status": "not-required",
+      "requiredCount": 0,
+      "acceptedCount": 0,
+      "staleCount": 0,
+      "resolvedCount": 0,
+      "obsoleteCount": 0,
+      "missingCount": 0,
+      "changesRequestedCount": 0,
+      "blockedCount": 0,
+      "failedCount": 0,
+      "invalidCount": 0,
+      "signoffReady": true,
+      "reviews": [
+        {
+          "phase": "spec",
+          "action": "spec.review",
+          "required": false,
+          "path": "docs/xian-harness/changes/fix-install-update-safety/spec/spec-review.json",
+          "status": "not-required",
+          "freshnessStatus": "unknown",
+          "evidenceState": "not-required",
+          "summary": "spec.review review is not required.",
+          "reviewDiffHash": null,
+          "currentDiffHash": null,
+          "reviewSnapshotHash": null,
+          "currentSnapshotHash": null,
+          "runtimeDiagnostics": null,
+          "deliveryConfirmation": null
+        },
+        {
+          "phase": "build",
+          "action": "build.review",
+          "required": false,
+          "path": "docs/xian-harness/changes/fix-install-update-safety/build/build-review.json",
+          "status": "accepted",
+          "freshnessStatus": "fresh",
+          "evidenceState": "fresh",
+          "summary": "The current build snapshot is empty: declaredScopePaths and scopedFiles contain no paths, and the snapshot has fileCount 0. Within the bundle-defined scope there is therefore no implementation diff to identify as defective, regressive, or out of scope. The failing acceptance summary and prior verify artifacts are lifecycle context and do not establish a current-phase defect. This acceptance applies only to this empty build.review snapshot; Harness Gate remains the final delivery authority.",
+          "reviewDiffHash": "sha256:5bf0e20980ca941ab23ebe381ddb7947533266b3a5935bdd7bf62a86f93e71da",
+          "currentDiffHash": "sha256:5bf0e20980ca941ab23ebe381ddb7947533266b3a5935bdd7bf62a86f93e71da",
+          "reviewSnapshotHash": "sha256:46d87ab5aac908df5c89fe97eb023a7415fc44310fd4b44e9fd6c29819ece797",
+          "currentSnapshotHash": "sha256:de10c14c0c9030f42cadda99571d7b0c17bcd2570229275e08bf493327743b2b",
+          "runtimeDiagnostics": {
+            "role": "reviewer",
+            "adapter": "codex-cli",
+            "runtime": "codex-cli",
+            "backend": "native",
+            "profile": "native",
+            "model": null,
+            "permissionMode": "read-only",
+            "commandDigest": "sha256:332a59e27f7b0531c26e8fd191567ef398262223fc9e1b9fe3c239ba3191b2b8",
+            "durationMs": 38156,
+            "exitCode": 0,
+            "attemptCount": 1,
+            "fallbackUsed": false,
+            "diagnosticCategory": "accepted",
+            "runtimeLogPath": ".xian-harness/runtime/agent-pair/fix-install-update-safety/build-review/1784388583702-d32cfa4f"
+          },
+          "deliveryConfirmation": {
+            "status": "ready",
+            "finalAuthority": "harness-gate",
+            "confirmedAt": "2026-07-18T23:29:43+08:00",
+            "reason": "Agent Pair review accepted the immutable source snapshot; Harness gate remains final authority."
+          }
+        }
+      ]
+    },
+    "phaseResultsSummary": {
+      "spec": {
+        "phase": "spec",
+        "path": "docs/xian-harness/changes/fix-install-update-safety/spec/spec-result.json",
+        "status": "unbound",
+        "summary": "验收标准与修复边界已明确 Missing committed lifecycle event binding.",
+        "generatedAt": "2026-07-18T23:21:29+08:00",
+        "missingFacts": [
+          "phase-result.lifecycle-binding.spec.missing"
+        ]
+      },
+      "build": {
+        "phase": "build",
+        "path": "docs/xian-harness/changes/fix-install-update-safety/build/build-result.json",
+        "status": "unbound",
+        "summary": "安装器修复、回归测试和双语更新文档已完成 Missing committed lifecycle event binding.",
+        "generatedAt": "2026-07-18T23:28:56+08:00",
+        "missingFacts": [
+          "phase-result.lifecycle-binding.build.missing"
+        ]
+      }
+    },
+    "runnerEnvironmentPath": null,
+    "runnerEnvironment": {
+      "status": "pass",
+      "checkedAt": "2026-07-18T23:35:39+08:00",
+      "checks": [
+        {
+          "id": "runtime.node",
+          "label": "Node.js runtime",
+          "status": "pass",
+          "required": true,
+          "message": "Current Node.js 22.22.0.",
+          "recovery": null,
+          "path": "package.json"
+        },
+        {
+          "id": "runtime.bash",
+          "label": "bash runtime",
+          "status": "pass",
+          "required": false,
+          "message": "bash is available for shell-based smoke and runner commands.",
+          "recovery": null,
+          "path": null
+        },
+        {
+          "id": "command.sh",
+          "label": "command: sh",
+          "status": "pass",
+          "required": true,
+          "message": "sh is available for verification.",
+          "recovery": null,
+          "path": "command:sh"
+        },
+        {
+          "id": "command.rg",
+          "label": "command: rg",
+          "status": "pass",
+          "required": true,
+          "message": "rg is available for verification.",
+          "recovery": null,
+          "path": "command:rg"
+        },
+        {
+          "id": "runtime.docker",
+          "label": "Docker runtime",
+          "status": "skipped",
+          "required": false,
+          "message": "No Docker or Compose requirement detected for this check.",
+          "recovery": null,
+          "path": null
+        }
+      ]
+    }
+  },
+  "policy": {
+    "adapter": null,
+    "profile": "generic",
+    "version": 1,
+    "path": null
+  },
+  "agents": {
+    "builder": null,
+    "verifier": "xian-verify",
+    "gatekeeper": "xian-gate"
+  },
+  "evidence": [
+    {
+      "kind": "command",
+      "name": "xian-harness verify",
+      "status": "pass",
+      "path": "docs/xian-harness/changes/fix-install-update-safety/verify.json"
+    },
+    {
+      "kind": "static",
+      "name": "change acceptance",
+      "status": "pass",
+      "path": "docs/xian-harness/changes/fix-install-update-safety/acceptance-criteria.md"
+    }
+  ],
+  "issues": [],
+  "summary": {
+    "total": 0,
+    "openCount": 0,
+    "blockingOpenCount": 0,
+    "openBySeverity": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 0
+  },
+  "decision": {
+    "archiveAllowed": true,
+    "reason": "All blocking checks passed and no open issues remain."
+  }
+}

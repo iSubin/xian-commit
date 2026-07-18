@@ -23,7 +23,9 @@ AI Coding Agents can write code, but still make concrete and expensive mistakes 
 
 It is for Git delivery by AI Coding Agents—not a general Git client or a business-quality gate.
 
-## Quick start
+## Installation and updates
+
+### First installation
 
 Clone this repository first, then install it in **another target Git repository**:
 
@@ -37,6 +39,31 @@ sh /path/to/xian-commit/install.sh verify
 The default installation writes the Codex and Claude Code Skills, a commit-message prompt, lifecycle reference scripts, policy, and four hooks. An existing `.xian-commit/config` is preserved; installation and updates never overwrite it.
 
 Hooks activate from the next `git commit` or `git push`. If a Codex or Claude Code session is already open, reopen the session in the target project so project-level Skills are rescanned.
+
+### Update an existing project
+
+Each target project stores its own project-level Skill, policy, and hooks. After the xian-commit source repository changes, update every integrated project separately. Update the local xian-commit source checkout first, then run the installer from the target project:
+
+```sh
+git -C /path/to/xian-commit pull --ff-only
+
+cd /path/to/your-project
+sh /path/to/xian-commit/install.sh status
+sh /path/to/xian-commit/install.sh update
+sh /path/to/xian-commit/install.sh verify
+```
+
+`status` is read-only and shows which managed resources are missing or differ from the current source version. `update` refreshes the Codex and Claude Code Skills, prompt, references, `policy.example.conf`, and all four hooks. `verify` then checks installation completeness and hook executability. Reopen the Codex or Claude Code session in the target project after updating so the new project-level Skill is loaded.
+
+Overwrite and preservation rules during updates:
+
+- `.xian-commit/config` is the target project's policy. Once created, later installations and updates do not overwrite it.
+- Managed Skills, prompts, references, `policy.example.conf`, and hooks are updated to the current xian-commit source version.
+- When a different same-named hook is first encountered, the installer saves it as `*.pre-xian-commit.bak`. Repeated installations and updates preserve that original backup. The active hook is still updated to the current xian-commit version, and the backup is not chained automatically.
+- Linked worktrees use the shared hooks directory resolved by Git; worktrees of the same main repository do not maintain separate private hook installations.
+- If `git config --show-origin --get core.hooksPath` prints a value, installation, updates, and `verify` fail explicitly. Do not blindly remove an existing Husky or similar configuration just to install xian-commit. First choose which tool owns the hooks, then chain the required behaviors manually.
+
+If `git pull --ff-only` fails because of local changes or divergence, resolve the Git state of the xian-commit source checkout first. Do not force-overwrite the installation source.
 
 ## Recommended project integration
 
@@ -92,7 +119,7 @@ If any condition is not met, no automatic push occurs. If an auto-safe push fail
 
 These hooks also apply to `git commit` and `git push` entered by people; they are not limited to Agents.
 
-If the target repository already has a same-named hook with different contents, the installer backs it up as `*.pre-xian-commit.bak` and writes the xian-commit hook. Backup hooks are **not automatically chained**; manually compose the two behaviors to suit the target project before use. In a linked worktree, hooks are installed in the shared hooks directory resolved by Git. If `core.hooksPath` is configured, installation and `verify` fail explicitly to avoid overwriting an existing hook manager such as Husky; unset the configuration or chain the two hook sets manually.
+If the target repository already has a same-named hook with different contents, the installer backs it up as `*.pre-xian-commit.bak` and writes the xian-commit hook. Backup hooks are **not automatically chained**; manually compose the two behaviors to suit the target project before use. In a linked worktree, hooks are installed in the shared hooks directory resolved by Git. If `core.hooksPath` is configured, installation, updates, and `verify` fail explicitly to avoid overwriting an existing hook manager such as Husky. Decide which tool owns the hooks first, then either keep the existing configuration and chain the behaviors manually or unset it only after confirming that it is no longer needed.
 
 ## How it differs from common tools
 

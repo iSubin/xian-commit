@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "changeId": "fix-install-update-safety",
+  "phase": "build",
+  "status": "pass",
+  "generatedAt": "2026-07-18T23:28:56+08:00",
+  "summary": "安装器修复、回归测试和双语更新文档已完成",
+  "missingFacts": [],
+  "implementationFacts": {
+    "coveredAcceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004"
+    ],
+    "changedFiles": [
+      "install.sh",
+      "tests/test_install.sh",
+      "README.md",
+      "README_EN.md"
+    ],
+    "testMapping": [
+      {
+        "acceptanceId": "AC-001",
+        "command": "sh tests/test_install.sh \"$PWD\"",
+        "evidence": "verify/verify-result.json"
+      },
+      {
+        "acceptanceId": "AC-002",
+        "command": "sh tests/test_install.sh \"$PWD\"",
+        "evidence": "verify/verify-result.json"
+      },
+      {
+        "acceptanceId": "AC-003",
+        "command": "rg -n \"更新已有工程|Update an existing project|core\\.hooksPath|\\.xian-commit/config\" README.md README_EN.md",
+        "evidence": "verify/verify-result.json"
+      },
+      {
+        "acceptanceId": "AC-004",
+        "command": "sh -n install.sh",
+        "evidence": "verify/verify-result.json"
+      }
+    ],
+    "residualRisks": [
+      "完整套件按项目纪律留待最终提交后的 merge-ready 单次执行"
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+Command: sh tests/test_install.sh "$PWD"
+CWD: <target-project>
+Started At: 2026-07-18T23:35:19+08:00
+Finished At: 2026-07-18T23:35:30+08:00
+Duration Ms: 10553
+Exit Code: 0
+
+## STDOUT
+  PASS: 默认 install 应通过
+  PASS: 默认 install 应安装 Codex SKILL.md
+  PASS: 默认 install 应安装 Codex prompt
+  PASS: 默认 install 应安装 Codex reference template
+  PASS: 默认 install 应安装 Claude Code SKILL.md
+  PASS: 默认 install 应安装 Claude Code prompt
+  PASS: 默认 install 应安装 Claude Code reference template
+  PASS: 默认 install 应创建 policy config
+  PASS: 默认 config 应启用 auto-safe
+  PASS: 默认 install 应安装 pre-commit
+  PASS: 默认 install 应安装 commit-msg
+  PASS: 默认 install 应安装 post-commit
+  PASS: 默认 install 应安装 pre-push
+  PASS: verify 应通过完整安装自检
+  PASS: status 应通过只读检查
+  PASS: status 应显示 Codex skill current
+  PASS: status 应显示 Claude Code skill current
+  PASS: status 应显示 current hook
+  PASS: verify 应发现 Claude Code skill 缺失 (correctly rejected)
+  PASS: update 应通过
+  PASS: update 应保留 Codex SKILL.md
+  PASS: update 应恢复 Claude Code SKILL.md
+  PASS: uninstall 应通过
+  PASS: uninstall 应删除 Codex skill 目录
+  PASS: uninstall 应删除 Claude Code skill 目录
+  PASS: uninstall 应删除 policy.example
+  PASS: uninstall 应保留用户 config
+  PASS: uninstall 应删除自身 hook
+  PASS: uninstall 应删除 post-commit
+  PASS: 首次 hooks 安装应通过
+  PASS: 首次安装应备份原始 hook
+  PASS: 重复 update 应通过
+  PASS: 重复更新不应覆盖首份原始 hook 备份
+  PASS: 重复更新仍应安装当前 pre-commit
+  PASS: 自定义类型前的完整安装应通过
+  PASS: verify 不应依赖项目允许 docs 类型
+  PASS: skill install 应通过
+  PASS: 已有 policy 不应被覆盖
+  PASS: skill install 应安装 Codex skill
+  PASS: skill install 应安装 Claude Code skill
+  PASS: skill install 不应安装 hooks
+  PASS: linked worktree 中完整安装应通过
+  PASS: linked worktree 应安装到共享 hooks 目录
+  PASS: linked worktree 私有 git-dir 下不应写入 hooks
+  PASS: linked worktree verify 应检查实际生效的 hooks
+  PASS: linked worktree 实际提交应触发已安装 hook (correctly rejected)
+  PASS: core.hooksPath 场景下默认安装应明确拒绝 (correctly rejected)
+  PASS: hooks 安装拒绝应提到 core.hooksPath
+  PASS: 现有自定义 hook 不应被覆盖
+  PASS: core.hooksPath 安装失败时不应写入默认 hooks
+  PASS: core.hooksPath 安装失败时不应部分写入 Skill
+  PASS: 设置 core.hooksPath 前的完整安装应通过
+  PASS: core.hooksPath 启用后 verify 应拒绝假阳性 (correctly rejected)
+  PASS: verify 拒绝应提到 core.hooksPath
+  Summary: 54 passed, 0 failed
+
+## STDERR

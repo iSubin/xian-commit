@@ -101,9 +101,11 @@ install_hooks() {
         hook_dst="$HOOKS_DST/$hook_name"
         if [ -f "$hook_dst" ] && ! diff -q "$hook_src" "$hook_dst" >/dev/null 2>&1; then
             backup="${hook_dst}.pre-xian-commit.bak"
-            cp "$hook_dst" "$backup"
-            BACKED_UP="$BACKED_UP
+            if [ ! -f "$backup" ]; then
+                cp "$hook_dst" "$backup"
+                BACKED_UP="$BACKED_UP
   - $hook_name -> $(basename "$backup")"
+            fi
         fi
         cp "$hook_src" "$hook_dst"
         chmod +x "$hook_dst"
@@ -209,20 +211,27 @@ verify_install() {
         exit 1
     fi
 
-    tmp_msg=$(mktemp 2>/dev/null || mktemp -t xian-commit-msg)
+    tmp_msg=$(mktemp 2>/dev/null || mktemp -t xian-commit-msg) || exit 1
+    tmp_policy=$(mktemp 2>/dev/null || mktemp -t xian-commit-policy) || {
+        rm -f "$tmp_msg"
+        exit 1
+    }
     cat > "$tmp_msg" <<'EOF'
-docs: 验证提交治理安装
-
-用于验证 xian-commit commit-msg hook 能正常读取并校验提交信息。
+docs: xian-commit verify
 EOF
-    if "$HOOKS_DST/commit-msg" "$tmp_msg" >/dev/null 2>&1; then
+    cat > "$tmp_policy" <<'EOF'
+message.types=docs
+message.title_language=any
+message.body_required=false
+EOF
+    if XIAN_COMMIT_CONFIG="$tmp_policy" "$HOOKS_DST/commit-msg" "$tmp_msg" >/dev/null 2>&1; then
         echo "  ok: commit-msg smoke"
     else
-        rm -f "$tmp_msg"
+        rm -f "$tmp_msg" "$tmp_policy"
         echo "xian-commit verify: commit-msg smoke failed." >&2
         exit 1
     fi
-    rm -f "$tmp_msg"
+    rm -f "$tmp_msg" "$tmp_policy"
 
     if git diff --cached --quiet --; then
         if "$HOOKS_DST/pre-commit" >/dev/null 2>&1; then

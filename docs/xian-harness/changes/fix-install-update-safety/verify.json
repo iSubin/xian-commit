@@ -1,0 +1,530 @@
+{
+  "changeId": "fix-install-update-safety",
+  "attemptId": "attempt-2026-07-18T23-35-19-08-00-1784388919637-36680-5zxox06ara",
+  "target": "<target-project>",
+  "status": "pass",
+  "startedAt": "2026-07-18T23:35:19+08:00",
+  "finishedAt": "2026-07-18T23:35:31+08:00",
+  "evidenceDir": "docs/xian-harness/changes/fix-install-update-safety",
+  "verifyPath": "docs/xian-harness/changes/fix-install-update-safety/verify.json",
+  "commands": [
+    {
+      "command": "sh tests/test_install.sh \"$PWD\"",
+      "cwd": "<target-project>",
+      "status": "pass",
+      "exitCode": 0,
+      "startedAt": "2026-07-18T23:35:19+08:00",
+      "finishedAt": "2026-07-18T23:35:30+08:00",
+      "durationMs": 10553,
+      "logPath": "docs/xian-harness/changes/fix-install-update-safety/verify/evidence/logs/run-001.log",
+      "execution": "executed",
+      "logPolicy": {
+        "storage": "tracked-evidence",
+        "tracked": true,
+        "digestAlgorithm": "sha256",
+        "digest": "99d20f503b3eaea0605f8a1fcf226e1cfec9d694ddb0f05fbba23474e5e0096f",
+        "tailExcerpt": [
+          "  PASS: 现有自定义 hook 不应被覆盖",
+          "  PASS: core.hooksPath 安装失败时不应写入默认 hooks",
+          "  PASS: core.hooksPath 安装失败时不应部分写入 Skill",
+          "  PASS: 设置 core.hooksPath 前的完整安装应通过",
+          "  PASS: core.hooksPath 启用后 verify 应拒绝假阳性 (correctly rejected)",
+          "  PASS: verify 拒绝应提到 core.hooksPath",
+          "  Summary: 54 passed, 0 failed",
+          "## STDERR"
+        ]
+      }
+    },
+    {
+      "command": "rg -n \"更新已有工程|Update an existing project|core\\.hooksPath|\\.xian-commit/config\" README.md README_EN.md",
+      "cwd": "<target-project>",
+      "status": "pass",
+      "exitCode": 0,
+      "startedAt": "2026-07-18T23:35:30+08:00",
+      "finishedAt": "2026-07-18T23:35:30+08:00",
+      "durationMs": 213,
+      "logPath": "docs/xian-harness/changes/fix-install-update-safety/verify/evidence/logs/run-002.log",
+      "execution": "executed",
+      "logPolicy": {
+        "storage": "tracked-evidence",
+        "tracked": true,
+        "digestAlgorithm": "sha256",
+        "digest": "c0dd221ead536615fa7f63d8e0e90ec4c4a8b400e59d891dc4fe7873d9a4bf2c",
+        "tailExcerpt": [
+          "README.md:64:- 若 `git config --show-origin --get core.hooksPath` 有输出，安装、更新和 `verify` 会明确拒绝。不要为了安装而盲目清除 Husky 等现有配置；应先决定由哪个工具管理 hooks，再手动串联所需逻辑。",
+          "README.md:75:2. 检查 `.xian-commit/config`，按团队习惯选择 `auto-safe`、`explicit-only` 或 `never`。",
+          "README.md:87:并遵守 `.xian-commit/config`；不得绕过 Git Hooks。",
+          "README.md:96:并遵守 `.xian-commit/config`；不得绕过 Git Hooks。",
+          "README.md:99:入口文件只负责告诉 Agent“什么时候使用 xian-commit”。完整流程继续以安装后的 `SKILL.md` 为准，项目策略以 `.xian-commit/config` 为准，确定性拦截以 Git Hooks 为准。不要把整份 Skill 复制进 `AGENTS.md` / `CLAUDE.md`，否则升级后容易出现多份规则不一致。",
+          "README.md:120:若目标仓库已有内容不同的同名 hook，安装器会备份为 `*.pre-xian-commit.bak`，再写入 xian-commit 的 hook。备份 hook **不会自动串联执行**；请按目标项目的实际需求手动组合两者逻辑后再使用。linked worktree 会将 hooks 安装到 Git 解析的共享 hooks 目录；若已配置 `core.hooksPath`，安装、更新和 `verify` 会明确拒绝，避免覆盖 Husky 等现有 hook 管理器。请先确认 hook 管理权，再选择保留现有配置并手动串联，或在确认不再需要时取消该配置。",
+          "README.md:134:目标项目的规则文件是 `.xian-commit/config`，格式见 [policy.example.conf](policy.example.conf)。它只保存规则；不要在其中记录 change 状态、Agent 计划或一次性 push 授权。",
+          "## STDERR"
+        ]
+      }
+    },
+    {
+      "command": "sh -n install.sh",
+      "cwd": "<target-project>",
+      "status": "pass",
+      "exitCode": 0,
+      "startedAt": "2026-07-18T23:35:30+08:00",
+      "finishedAt": "2026-07-18T23:35:30+08:00",
+      "durationMs": 193,
+      "logPath": "docs/xian-harness/changes/fix-install-update-safety/verify/evidence/logs/run-003.log",
+      "execution": "executed",
+      "logPolicy": {
+        "storage": "tracked-evidence",
+        "tracked": true,
+        "digestAlgorithm": "sha256",
+        "digest": "6479c552dacb619376a0b9c00c1e34ef8d41230accc239e85fb8587e280f4dad",
+        "tailExcerpt": [
+          "Command: sh -n install.sh",
+          "CWD: <target-project>",
+          "Started At: 2026-07-18T23:35:30+08:00",
+          "Finished At: 2026-07-18T23:35:30+08:00",
+          "Duration Ms: 193",
+          "Exit Code: 0",
+          "## STDOUT",
+          "## STDERR"
+        ]
+      }
+    },
+    {
+      "command": "git diff --check",
+      "cwd": "<target-project>",
+      "status": "pass",
+      "exitCode": 0,
+      "startedAt": "2026-07-18T23:35:30+08:00",
+      "finishedAt": "2026-07-18T23:35:30+08:00",
+      "durationMs": 193,
+      "logPath": "docs/xian-harness/changes/fix-install-update-safety/verify/evidence/logs/run-004.log",
+      "execution": "executed",
+      "kind": "static-review",
+      "severity": "P1",
+      "ownerSkill": "xian-verify",
+      "resourceContract": {
+        "parallelSafe": true,
+        "resourceLocks": [
+          "git:index-read"
+        ],
+        "isolatedPorts": [],
+        "isolatedDirectories": [],
+        "envKeys": []
+      },
+      "logPolicy": {
+        "storage": "tracked-evidence",
+        "tracked": true,
+        "digestAlgorithm": "sha256",
+        "digest": "c75ac1040f70ddb72b04cdea4926160214937d0569ec341b10fd59caf27a0d5a",
+        "tailExcerpt": [
+          "Parallel Safe: yes",
+          "Resource Locks: git:index-read",
+          "Started At: 2026-07-18T23:35:30+08:00",
+          "Finished At: 2026-07-18T23:35:30+08:00",
+          "Duration Ms: 193",
+          "Exit Code: 0",
+          "## STDOUT",
+          "## STDERR"
+        ]
+      }
+    }
+  ],
+  "evidenceDependencyGraph": {
+    "version": 1,
+    "graphKind": "verify-evidence-dependency-dag",
+    "changeId": "fix-install-update-safety",
+    "generatedAt": "2026-07-18T23:35:31+08:00",
+    "authority": "contract-revision",
+    "contractRevision": "rev-0001",
+    "environmentProjection": {
+      "runtime": {
+        "node": "v22.22.0",
+        "platform": "darwin",
+        "arch": "x64",
+        "osRelease": "25.5.0"
+      },
+      "env": {
+        "LANG": "en_US.UTF-8",
+        "LC_ALL": "C.UTF-8",
+        "TERM": "xterm-ghostty"
+      },
+      "allowlistedKeys": [
+        "CI",
+        "GITHUB_ACTIONS",
+        "LANG",
+        "LC_ALL",
+        "NODE_ENV",
+        "TERM",
+        "npm_config_user_agent"
+      ],
+      "redacted": true
+    },
+    "environmentHash": "sha256:8b398f53da2dd10ff6def7d3d484c18f7fb22a6a246a7a6f49fb788300118f56",
+    "sharedSourceSnapshot": {
+      "hash": "sha256:553e4e0acb7f9afe088e0f8d2528609a6abe2ef33d15e3f53ba9c2178327f017",
+      "pathCount": 152
+    },
+    "nodes": [
+      {
+        "id": "verify-command-1",
+        "evidenceId": null,
+        "commandIndex": 1,
+        "dependsOnSections": [
+          "acceptanceHash",
+          "sourceDeltaHash"
+        ],
+        "sectionFingerprints": {
+          "acceptanceHash": "sha256:85ece062d27ca4afae5382a06c6931eb7840e8e98ec8bc480d3cbac697d420b4",
+          "sourceDeltaHash": "sha256:b732887c9a29b53874146beb0bb13dc89f5006f374358942b01ab2aaac3f337e"
+        },
+        "sourceHash": "sha256:0d27aff0c6a9d2e0a70d3325d0b154df1859d6ea343a43171a7110c3a83ff203",
+        "sourcePaths": [
+          "README.md",
+          "README_EN.md",
+          "install.sh",
+          "tests/test_install.sh"
+        ],
+        "sourceDigestManifest": [
+          {
+            "path": "README.md",
+            "digest": "db792fbe637fbbb588d90522e9f797288ee9e3ebdd43d1cb63e21d3c4cbb6d2e"
+          },
+          {
+            "path": "README_EN.md",
+            "digest": "652c6e994517c949bdd36ecc981d660debe3b235b39965863ec645877a00f315"
+          },
+          {
+            "path": "install.sh",
+            "digest": "3c24a083998c8add1cfbb8248a4a932dab288e1f7be7057dc42be52f864c39d3"
+          },
+          {
+            "path": "tests/test_install.sh",
+            "digest": "9010b792a3c2e81151e9664eb153f11ab2af64ec3a38c479f60baf9f046dbc83"
+          }
+        ],
+        "invocationFingerprint": "sha256:e357440079f277991d9ba1c835816075bcecdac501612a81353ae2abf19ab06a",
+        "invocationProjection": {
+          "source": "shell",
+          "shellMode": "node:child_process.exec",
+          "command": "sh tests/test_install.sh \"$PWD\"",
+          "executable": null,
+          "args": [],
+          "cwd": "<target-project>",
+          "timeoutMs": null,
+          "safetyPolicy": {
+            "aggregateShellRejected": true,
+            "destructiveCommandRejected": true,
+            "wrapperInspection": "recursive-shell-and-env-wrapper"
+          },
+          "registryRule": {
+            "registryPath": null,
+            "ruleId": null,
+            "evidenceId": null,
+            "kind": null,
+            "severity": null,
+            "ownerSkill": null,
+            "covers": []
+          },
+          "wrapperPolicy": {
+            "shellAggregateOperators": "reject",
+            "envSplitString": "reject",
+            "commandBuiltinInspection": "safe-introspection-only"
+          },
+          "resourceContract": null
+        },
+        "environmentHash": "sha256:8b398f53da2dd10ff6def7d3d484c18f7fb22a6a246a7a6f49fb788300118f56",
+        "status": "pass",
+        "logDigest": "99d20f503b3eaea0605f8a1fcf226e1cfec9d694ddb0f05fbba23474e5e0096f"
+      },
+      {
+        "id": "verify-command-2",
+        "evidenceId": null,
+        "commandIndex": 2,
+        "dependsOnSections": [
+          "acceptanceHash",
+          "sourceDeltaHash"
+        ],
+        "sectionFingerprints": {
+          "acceptanceHash": "sha256:85ece062d27ca4afae5382a06c6931eb7840e8e98ec8bc480d3cbac697d420b4",
+          "sourceDeltaHash": "sha256:b732887c9a29b53874146beb0bb13dc89f5006f374358942b01ab2aaac3f337e"
+        },
+        "sourceHash": "sha256:0d27aff0c6a9d2e0a70d3325d0b154df1859d6ea343a43171a7110c3a83ff203",
+        "sourcePaths": [
+          "README.md",
+          "README_EN.md",
+          "install.sh",
+          "tests/test_install.sh"
+        ],
+        "sourceDigestManifest": [
+          {
+            "path": "README.md",
+            "digest": "db792fbe637fbbb588d90522e9f797288ee9e3ebdd43d1cb63e21d3c4cbb6d2e"
+          },
+          {
+            "path": "README_EN.md",
+            "digest": "652c6e994517c949bdd36ecc981d660debe3b235b39965863ec645877a00f315"
+          },
+          {
+            "path": "install.sh",
+            "digest": "3c24a083998c8add1cfbb8248a4a932dab288e1f7be7057dc42be52f864c39d3"
+          },
+          {
+            "path": "tests/test_install.sh",
+            "digest": "9010b792a3c2e81151e9664eb153f11ab2af64ec3a38c479f60baf9f046dbc83"
+          }
+        ],
+        "invocationFingerprint": "sha256:3e507b9a59fd35256a065fc03b264bc4f3057198802ff20a2d14dc3712e8ff2c",
+        "invocationProjection": {
+          "source": "shell",
+          "shellMode": "node:child_process.exec",
+          "command": "rg -n \"更新已有工程|Update an existing project|core\\.hooksPath|\\.xian-commit/config\" README.md README_EN.md",
+          "executable": null,
+          "args": [],
+          "cwd": "<target-project>",
+          "timeoutMs": null,
+          "safetyPolicy": {
+            "aggregateShellRejected": true,
+            "destructiveCommandRejected": true,
+            "wrapperInspection": "recursive-shell-and-env-wrapper"
+          },
+          "registryRule": {
+            "registryPath": null,
+            "ruleId": null,
+            "evidenceId": null,
+            "kind": null,
+            "severity": null,
+            "ownerSkill": null,
+            "covers": []
+          },
+          "wrapperPolicy": {
+            "shellAggregateOperators": "reject",
+            "envSplitString": "reject",
+            "commandBuiltinInspection": "safe-introspection-only"
+          },
+          "resourceContract": null
+        },
+        "environmentHash": "sha256:8b398f53da2dd10ff6def7d3d484c18f7fb22a6a246a7a6f49fb788300118f56",
+        "status": "pass",
+        "logDigest": "c0dd221ead536615fa7f63d8e0e90ec4c4a8b400e59d891dc4fe7873d9a4bf2c"
+      },
+      {
+        "id": "verify-command-3",
+        "evidenceId": null,
+        "commandIndex": 3,
+        "dependsOnSections": [
+          "acceptanceHash",
+          "sourceDeltaHash"
+        ],
+        "sectionFingerprints": {
+          "acceptanceHash": "sha256:85ece062d27ca4afae5382a06c6931eb7840e8e98ec8bc480d3cbac697d420b4",
+          "sourceDeltaHash": "sha256:b732887c9a29b53874146beb0bb13dc89f5006f374358942b01ab2aaac3f337e"
+        },
+        "sourceHash": "sha256:0d27aff0c6a9d2e0a70d3325d0b154df1859d6ea343a43171a7110c3a83ff203",
+        "sourcePaths": [
+          "README.md",
+          "README_EN.md",
+          "install.sh",
+          "tests/test_install.sh"
+        ],
+        "sourceDigestManifest": [
+          {
+            "path": "README.md",
+            "digest": "db792fbe637fbbb588d90522e9f797288ee9e3ebdd43d1cb63e21d3c4cbb6d2e"
+          },
+          {
+            "path": "README_EN.md",
+            "digest": "652c6e994517c949bdd36ecc981d660debe3b235b39965863ec645877a00f315"
+          },
+          {
+            "path": "install.sh",
+            "digest": "3c24a083998c8add1cfbb8248a4a932dab288e1f7be7057dc42be52f864c39d3"
+          },
+          {
+            "path": "tests/test_install.sh",
+            "digest": "9010b792a3c2e81151e9664eb153f11ab2af64ec3a38c479f60baf9f046dbc83"
+          }
+        ],
+        "invocationFingerprint": "sha256:1f692f2d9301e0404c48570f9020512c7a8085215b03fd351e6f81ee10aa1cd8",
+        "invocationProjection": {
+          "source": "shell",
+          "shellMode": "node:child_process.exec",
+          "command": "sh -n install.sh",
+          "executable": null,
+          "args": [],
+          "cwd": "<target-project>",
+          "timeoutMs": null,
+          "safetyPolicy": {
+            "aggregateShellRejected": true,
+            "destructiveCommandRejected": true,
+            "wrapperInspection": "recursive-shell-and-env-wrapper"
+          },
+          "registryRule": {
+            "registryPath": null,
+            "ruleId": null,
+            "evidenceId": null,
+            "kind": null,
+            "severity": null,
+            "ownerSkill": null,
+            "covers": []
+          },
+          "wrapperPolicy": {
+            "shellAggregateOperators": "reject",
+            "envSplitString": "reject",
+            "commandBuiltinInspection": "safe-introspection-only"
+          },
+          "resourceContract": null
+        },
+        "environmentHash": "sha256:8b398f53da2dd10ff6def7d3d484c18f7fb22a6a246a7a6f49fb788300118f56",
+        "status": "pass",
+        "logDigest": "6479c552dacb619376a0b9c00c1e34ef8d41230accc239e85fb8587e280f4dad"
+      },
+      {
+        "id": "verify-command-4",
+        "evidenceId": null,
+        "commandIndex": 4,
+        "dependsOnSections": [
+          "acceptanceHash",
+          "sourceDeltaHash"
+        ],
+        "sectionFingerprints": {
+          "acceptanceHash": "sha256:85ece062d27ca4afae5382a06c6931eb7840e8e98ec8bc480d3cbac697d420b4",
+          "sourceDeltaHash": "sha256:b732887c9a29b53874146beb0bb13dc89f5006f374358942b01ab2aaac3f337e"
+        },
+        "sourceHash": "sha256:0d27aff0c6a9d2e0a70d3325d0b154df1859d6ea343a43171a7110c3a83ff203",
+        "sourcePaths": [
+          "README.md",
+          "README_EN.md",
+          "install.sh",
+          "tests/test_install.sh"
+        ],
+        "sourceDigestManifest": [
+          {
+            "path": "README.md",
+            "digest": "db792fbe637fbbb588d90522e9f797288ee9e3ebdd43d1cb63e21d3c4cbb6d2e"
+          },
+          {
+            "path": "README_EN.md",
+            "digest": "652c6e994517c949bdd36ecc981d660debe3b235b39965863ec645877a00f315"
+          },
+          {
+            "path": "install.sh",
+            "digest": "3c24a083998c8add1cfbb8248a4a932dab288e1f7be7057dc42be52f864c39d3"
+          },
+          {
+            "path": "tests/test_install.sh",
+            "digest": "9010b792a3c2e81151e9664eb153f11ab2af64ec3a38c479f60baf9f046dbc83"
+          }
+        ],
+        "invocationFingerprint": "sha256:8e303ee00bbbcc2a734e416603f958abd621f3af1440572618c64f7ac099356b",
+        "invocationProjection": {
+          "source": "shell",
+          "shellMode": "node:child_process.exec",
+          "command": "git diff --check",
+          "executable": null,
+          "args": [],
+          "cwd": "<target-project>",
+          "timeoutMs": null,
+          "safetyPolicy": {
+            "aggregateShellRejected": true,
+            "destructiveCommandRejected": true,
+            "wrapperInspection": "recursive-shell-and-env-wrapper"
+          },
+          "registryRule": {
+            "registryPath": null,
+            "ruleId": null,
+            "evidenceId": null,
+            "kind": "static-review",
+            "severity": "P1",
+            "ownerSkill": "xian-verify",
+            "covers": []
+          },
+          "wrapperPolicy": {
+            "shellAggregateOperators": "reject",
+            "envSplitString": "reject",
+            "commandBuiltinInspection": "safe-introspection-only"
+          },
+          "resourceContract": {
+            "parallelSafe": true,
+            "resourceLocks": [
+              "git:index-read"
+            ],
+            "isolatedPorts": [],
+            "isolatedDirectories": [],
+            "envKeys": []
+          }
+        },
+        "environmentHash": "sha256:8b398f53da2dd10ff6def7d3d484c18f7fb22a6a246a7a6f49fb788300118f56",
+        "status": "pass",
+        "logDigest": "c75ac1040f70ddb72b04cdea4926160214937d0569ec341b10fd59caf27a0d5a"
+      }
+    ],
+    "legacyFallback": "mtime",
+    "graphFingerprint": "sha256:ad31e7c394dfb57560775ecf5c07cc1781a94e6eb0f3f441b12c6ff15dc39407"
+  },
+  "summary": {
+    "commandCount": 4,
+    "executedCommandCount": 4,
+    "reusedCommandCount": 0,
+    "estimatedSavedCommandDurationMs": 0,
+    "totalCommandDurationMs": 11152,
+    "wallClockDurationMs": 11788,
+    "harnessOverheadMs": 636,
+    "slowestCommand": {
+      "commandIndex": 1,
+      "command": "sh tests/test_install.sh \"$PWD\"",
+      "durationMs": 10553
+    },
+    "resourceSummary": {
+      "parallelSafeCommandCount": 1,
+      "serialCommandCount": 3,
+      "resourceLocks": [
+        "git:index-read"
+      ],
+      "isolatedPorts": [],
+      "isolatedDirectories": [],
+      "envKeys": [],
+      "recommendation": "Keep verification execution serial unless every selected command is marked parallelSafe and resource locks do not overlap."
+    },
+    "strategyHints": [],
+    "changePaths": [
+      "README.md",
+      "README_EN.md",
+      "install.sh",
+      "tests/test_install.sh"
+    ],
+    "workspaceNoisePaths": [
+      ".xian-harness/state.yaml",
+      "docs/xian-harness/changes/.projection-log.jsonl",
+      "docs/xian-harness/changes/fix-install-update-safety/.change-state.json",
+      "docs/xian-harness/changes/fix-install-update-safety/acceptance-criteria.md",
+      "docs/xian-harness/changes/fix-install-update-safety/build/build-result.json",
+      "docs/xian-harness/changes/fix-install-update-safety/build/build-review.json",
+      "docs/xian-harness/changes/fix-install-update-safety/change.md",
+      "docs/xian-harness/changes/fix-install-update-safety/contract-revisions/rev-0001.json",
+      "docs/xian-harness/changes/fix-install-update-safety/contract-state.json",
+      "docs/xian-harness/changes/fix-install-update-safety/events.jsonl",
+      "docs/xian-harness/changes/fix-install-update-safety/spec/spec-result.json",
+      "docs/xian-harness/changes/fix-install-update-safety/verify.json",
+      "docs/xian-harness/changes/fix-install-update-safety/verify/evidence/logs/run-001.log",
+      "docs/xian-harness/changes/fix-install-update-safety/verify/evidence/logs/run-002.log",
+      "docs/xian-harness/changes/fix-install-update-safety/verify/evidence/logs/run-003.log",
+      "docs/xian-harness/changes/fix-install-update-safety/verify/evidence/logs/run-004.log"
+    ],
+    "testPortfolioSupersetCoverage": {
+      "beforeCommandCount": 4,
+      "afterCommandCount": 4,
+      "removedCommandCount": 0,
+      "estimatedSavedCommandDurationMs": 0,
+      "estimatedSavedWallClockMs": 0,
+      "removedCommands": []
+    }
+  },
+  "performanceWarnings": [],
+  "runtimeSourceIdentity": {
+    "version": 1,
+    "sourceKind": "tracked-checkout",
+    "implementationHash": "sha256:4dacf9d354ba67c57872f6942c4c43ca374c2433736d2863d51198be316d826e",
+    "packSourceSnapshotContentHash": "53ebdc15c734c6cdad9b152584a53c78bded3d40a06dcf84727b2537fad21f71",
+    "sourceCommit": "6495dbde54107b1d8c23a545e4503a20af9101a1"
+  }
+}

@@ -66,6 +66,36 @@ cleanup_repo "$TMP"
 
 TMP=$(setup_repo "$PROJECT_ROOT")
 cd "$TMP"
+printf '#!/bin/sh\n# original project hook\nexit 0\n' > .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+sh "$PROJECT_ROOT/install.sh" hooks >"$TMP/install-hooks-first.log" 2>&1
+expect_pass "首次 hooks 安装应通过" $?
+expect_contains "首次安装应备份原始 hook" "$(cat .git/hooks/pre-commit.pre-xian-commit.bak)" "original project hook"
+printf '#!/bin/sh\n# intermediate hook\nexit 0\n' > .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+sh "$PROJECT_ROOT/install.sh" update >"$TMP/install-hooks-update.log" 2>&1
+expect_pass "重复 update 应通过" $?
+expect_contains "重复更新不应覆盖首份原始 hook 备份" "$(cat .git/hooks/pre-commit.pre-xian-commit.bak)" "original project hook"
+diff -q "$PROJECT_ROOT/hooks/pre-commit" .git/hooks/pre-commit >/dev/null 2>&1
+expect_pass "重复更新仍应安装当前 pre-commit" $?
+cleanup_repo "$TMP"
+
+TMP=$(setup_repo "$PROJECT_ROOT")
+cd "$TMP"
+sh "$PROJECT_ROOT/install.sh" >"$TMP/install-custom-types.log" 2>&1
+expect_pass "自定义类型前的完整安装应通过" $?
+cat > .xian-commit/config <<'EOF'
+push.mode=explicit-only
+message.types=ci
+message.title_language=any
+message.body_required=false
+EOF
+sh "$PROJECT_ROOT/install.sh" verify >"$TMP/verify-custom-types.log" 2>&1
+expect_pass "verify 不应依赖项目允许 docs 类型" $?
+cleanup_repo "$TMP"
+
+TMP=$(setup_repo "$PROJECT_ROOT")
+cd "$TMP"
 mkdir -p .xian-commit
 printf "push.mode=auto-safe\n" > .xian-commit/config
 sh "$PROJECT_ROOT/install.sh" skill >/tmp/xian-install-skill.log 2>&1

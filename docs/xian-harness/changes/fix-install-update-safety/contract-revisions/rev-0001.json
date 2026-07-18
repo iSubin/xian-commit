@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "changeId": "fix-install-update-safety",
+  "contractRevision": "rev-0001",
+  "baseRevision": null,
+  "createdAt": "2026-07-18T23:16:22+08:00",
+  "actor": "xian-harness change open",
+  "reason": "Initial change open contract.",
+  "sections": {
+    "requirement": {
+      "intent": "Define governed change fix-install-update-safety.",
+      "why": "Initial contract authority is created with the change so later generated views have a durable fact source.",
+      "whatChanges": "Track requirement, acceptance, verification, source delta, review policy, and runtime plan facts in a contract revision.",
+      "nonGoals": [],
+      "successSignals": []
+    },
+    "scope": {
+      "changedPaths": [],
+      "nonGoals": [],
+      "options": [],
+      "impact": []
+    },
+    "design": {
+      "approach": "Use the accepted contract revision as the source for generated change views.",
+      "optionsConsidered": [],
+      "acceptanceMapping": [
+        {
+          "acceptanceId": "AC-001",
+          "taskIds": [
+            "TASK-001"
+          ],
+          "verificationRuleIds": [
+            "VC-001"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "TASK-001",
+          "title": "Keep contract facts and generated views in sync.",
+          "status": "todo",
+          "acceptanceIds": [
+            "AC-001"
+          ]
+        }
+      ]
+    },
+    "tasks": {
+      "tasks": [
+        {
+          "id": "TASK-001",
+          "title": "Keep contract facts and generated views in sync.",
+          "status": "todo",
+          "acceptanceIds": [
+            "AC-001"
+          ]
+        }
+      ]
+    },
+    "acceptance": {
+      "business": [
+        {
+          "id": "AC-001",
+          "text": "The change has a durable contract authority source."
+        }
+      ],
+      "technical": [],
+      "criteria": [],
+      "regression": []
+    },
+    "verificationPlan": {
+      "commands": [
+        {
+          "id": "VC-001",
+          "command": "git diff --check",
+          "covers": [
+            "AC-001"
+          ],
+          "evidence": "verify/verify-result.json",
+          "required": true
+        }
+      ]
+    },
+    "sourceDelta": {
+      "capabilityDelta": [],
+      "boundaryDelta": [],
+      "riskDelta": []
+    },
+    "reviewPolicy": {
+      "requiredReviewers": [],
+      "agentPairRequired": false,
+      "readOnlyRequired": true,
+      "residualRiskPolicy": "block-on-p1"
+    },
+    "runtimePlan": {
+      "executionMode": "executable",
+      "steps": []
+    },
+    "render": {
+      "headingStyle": "standard",
+      "generatedViews": [],
+      "metadata": {
+        "changeMode": "governed"
+      }
+    }
+  }
+}

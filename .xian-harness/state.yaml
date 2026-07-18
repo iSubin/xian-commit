@@ -1,7 +1,14 @@
 version: 1
 initializedAt: 2026-07-18T23:08:14+08:00
-activeChange: null
-changes: []
+activeChange: fix-install-update-safety
+changes:
+  - fix-install-update-safety
+lastVerification:
+  changeId: fix-install-update-safety
+  status: pass
+  verifiedAt: 2026-07-18T23:35:31+08:00
+  evidenceDir: docs/xian-harness/changes/fix-install-update-safety
+  verifyPath: docs/xian-harness/changes/fix-install-update-safety/verify.json
 lastPackInstall:
   requestedProfile: base
   effectiveProfile: base
@@ -29,3 +36,10 @@ lastPackInstall:
     profileExcluded: 0
     acceptedDrift: 0
   installedAt: 2026-07-18T23:08:15+08:00
+lastQualityGate:
+  changeId: fix-install-update-safety
+  status: pass
+  checkedAt: 2026-07-18T23:35:40+08:00
+  gateResultPath: docs/xian-harness/changes/fix-install-update-safety/gate.json
+  issuesPath: docs/xian-harness/changes/fix-install-update-safety/gate.json
+  reportPath: docs/xian-harness/changes/fix-install-update-safety/gate.json

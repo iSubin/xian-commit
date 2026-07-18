@@ -1,0 +1,30 @@
+Command: rg -n "更新已有工程|Update an existing project|core\.hooksPath|\.xian-commit/config" README.md README_EN.md
+CWD: <target-project>
+Started At: 2026-07-18T23:35:30+08:00
+Finished At: 2026-07-18T23:35:30+08:00
+Duration Ms: 213
+Exit Code: 0
+
+## STDOUT
+README_EN.md:39:The default installation writes the Codex and Claude Code Skills, a commit-message prompt, lifecycle reference scripts, policy, and four hooks. An existing `.xian-commit/config` is preserved; installation and updates never overwrite it.
+README_EN.md:43:### Update an existing project
+README_EN.md:60:- `.xian-commit/config` is the target project's policy. Once created, later installations and updates do not overwrite it.
+README_EN.md:64:- If `git config --show-origin --get core.hooksPath` prints a value, installation, updates, and `verify` fail explicitly. Do not blindly remove an existing Husky or similar configuration just to install xian-commit. First choose which tool owns the hooks, then chain the required behaviors manually.
+README_EN.md:75:2. Review `.xian-commit/config` and choose `auto-safe`, `explicit-only`, or `never` for the team's workflow.
+README_EN.md:87:`.codex/skills/xian-commit/SKILL.md`, follow `.xian-commit/config`,
+README_EN.md:97:`.claude/skills/xian-commit/SKILL.md`, follow `.xian-commit/config`,
+README_EN.md:101:The entry file should only tell the Agent when to use xian-commit. The installed `SKILL.md` remains the workflow source of truth, `.xian-commit/config` owns project policy, and Git hooks provide deterministic enforcement. Do not copy the full Skill into `AGENTS.md` or `CLAUDE.md`; duplicated rules are likely to drift after updates.
+README_EN.md:122:If the target repository already has a same-named hook with different contents, the installer backs it up as `*.pre-xian-commit.bak` and writes the xian-commit hook. Backup hooks are **not automatically chained**; manually compose the two behaviors to suit the target project before use. In a linked worktree, hooks are installed in the shared hooks directory resolved by Git. If `core.hooksPath` is configured, installation, updates, and `verify` fail explicitly to avoid overwriting an existing hook manager such as Husky. Decide which tool owns the hooks first, then either keep the existing configuration and chain the behaviors manually or unset it only after confirming that it is no longer needed.
+README_EN.md:136:The target project's rule file is `.xian-commit/config`; see [policy.example.conf](policy.example.conf) for its format. It stores rules only: do not record change status, Agent plans, or one-time push authorization in it.
+README.md:39:默认安装会写入 Codex 与 Claude Code 的 Skill、提交信息 prompt、lifecycle 参考脚本、policy 和四个 hooks。已有 `.xian-commit/config` 会保留，不会被安装或更新覆盖。
+README.md:43:### 更新已有工程
+README.md:60:- `.xian-commit/config` 是目标工程自己的 policy，首次创建后不会被后续安装或更新覆盖。
+README.md:64:- 若 `git config --show-origin --get core.hooksPath` 有输出，安装、更新和 `verify` 会明确拒绝。不要为了安装而盲目清除 Husky 等现有配置；应先决定由哪个工具管理 hooks，再手动串联所需逻辑。
+README.md:75:2. 检查 `.xian-commit/config`，按团队习惯选择 `auto-safe`、`explicit-only` 或 `never`。
+README.md:87:并遵守 `.xian-commit/config`；不得绕过 Git Hooks。
+README.md:96:并遵守 `.xian-commit/config`；不得绕过 Git Hooks。
+README.md:99:入口文件只负责告诉 Agent“什么时候使用 xian-commit”。完整流程继续以安装后的 `SKILL.md` 为准，项目策略以 `.xian-commit/config` 为准，确定性拦截以 Git Hooks 为准。不要把整份 Skill 复制进 `AGENTS.md` / `CLAUDE.md`，否则升级后容易出现多份规则不一致。
+README.md:120:若目标仓库已有内容不同的同名 hook，安装器会备份为 `*.pre-xian-commit.bak`，再写入 xian-commit 的 hook。备份 hook **不会自动串联执行**；请按目标项目的实际需求手动组合两者逻辑后再使用。linked worktree 会将 hooks 安装到 Git 解析的共享 hooks 目录；若已配置 `core.hooksPath`，安装、更新和 `verify` 会明确拒绝，避免覆盖 Husky 等现有 hook 管理器。请先确认 hook 管理权，再选择保留现有配置并手动串联，或在确认不再需要时取消该配置。
+README.md:134:目标项目的规则文件是 `.xian-commit/config`，格式见 [policy.example.conf](policy.example.conf)。它只保存规则；不要在其中记录 change 状态、Agent 计划或一次性 push 授权。
+
+## STDERR

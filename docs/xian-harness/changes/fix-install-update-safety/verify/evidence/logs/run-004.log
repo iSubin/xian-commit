@@ -1,0 +1,15 @@
+Command: git diff --check
+CWD: <target-project>
+Kind: static-review
+Severity: P1
+Owner Skill: xian-verify
+Parallel Safe: yes
+Resource Locks: git:index-read
+Started At: 2026-07-18T23:35:30+08:00
+Finished At: 2026-07-18T23:35:30+08:00
+Duration Ms: 193
+Exit Code: 0
+
+## STDOUT
+
+## STDERR
