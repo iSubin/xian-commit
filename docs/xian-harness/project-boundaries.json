@@ -13,7 +13,11 @@
       "rule": "Every target project is installed, verified, and updated separately.",
       "scope": "installer and public documentation",
       "enforcement": "install.sh paths and README contract",
-      "evidence": ["README.md", "README_EN.md", "install.sh"]
+      "evidence": ["README.md", "README_EN.md", "install.sh"],
+      "provenance": {
+        "introducedAt": "baseline-calibration",
+        "lastTouchedAt": "baseline-calibration"
+      }
     },
     {
       "id": "external-hook-owner-explicit",
@@ -24,7 +28,11 @@
       "rule": "Installer operations that require managed hooks fail fast when core.hooksPath is configured.",
       "scope": "hook installation and verification",
       "enforcement": "install.sh and installer regression tests",
-      "evidence": ["install.sh", "tests/test_install.sh"]
+      "evidence": ["install.sh", "tests/test_install.sh"],
+      "provenance": {
+        "introducedAt": "baseline-calibration",
+        "lastTouchedAt": "baseline-calibration"
+      }
     }
   ]
 }

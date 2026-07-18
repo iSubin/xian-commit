@@ -1,0 +1,453 @@
+{
+  "version": 2,
+  "target": "<target-project>",
+  "mode": "project-continue",
+  "status": "empty",
+  "activeChange": null,
+  "selectedChangeId": null,
+  "changeCount": 0,
+  "decisions": [],
+  "archivedContext": [],
+  "archivedContextSummary": {
+    "total": 1,
+    "returned": 0,
+    "folded": true,
+    "includeArchived": false,
+    "expandCommand": "xian-harness continue --target <target-project> --include-archived --json"
+  },
+  "recommendedDecision": null,
+  "recommendedAction": "delivery-close",
+  "recommendedRole": "orchestrator",
+  "recommendedSkills": [
+    "xian-commit"
+  ],
+  "recommendedSkillRefs": [
+    {
+      "name": "xian-commit",
+      "kind": "codex-skill"
+    }
+  ],
+  "recommendedCommandRefs": [
+    {
+      "command": "git status --short",
+      "kind": "shell-command",
+      "executable": true,
+      "available": true,
+      "fallbackCommands": [
+        "git status --short --branch",
+        "git diff --stat"
+      ]
+    }
+  ],
+  "closeoutReadiness": {
+    "status": "blocked",
+    "nextState": "attribute-worktree-before-closeout",
+    "reason": "Workspace has dirty or untracked files, so closeout must first attribute local delivery changes.",
+    "blockers": [
+      "Workspace dirty=7, untracked=1"
+    ],
+    "suggestedCommands": [
+      "git status --short",
+      "git diff --stat"
+    ],
+    "commit": {
+      "recommended": false,
+      "reason": "Commit suggestion is blocked until dirty and untracked paths are attributed.",
+      "suggestedCommand": null,
+      "suggestedSkill": "xian-commit",
+      "suggestedMessage": null
+    },
+    "tag": {
+      "recommended": false,
+      "reason": "Harness has no generic project tag capability; follow the target project's release policy if tagging is required.",
+      "suggestedCommand": null,
+      "suggestedSkill": null
+    },
+    "release": {
+      "recommended": false,
+      "reason": "Harness does not define a generic deploy or release workflow for every project; use project-specific release changes when needed.",
+      "suggestedCommand": null,
+      "suggestedSkill": null
+    }
+  },
+  "experienceCandidates": [],
+  "recommendedRoute": null,
+  "commands": [
+    "git status --short"
+  ],
+  "fallbackCommands": [
+    "git status --short --branch",
+    "git diff --stat"
+  ],
+  "evidence": [
+    "docs/xian-harness/project/project-status.json",
+    "docs/xian-harness/project/doc-sync-report.json",
+    "docs/xian-harness/project/project-status.json"
+  ],
+  "nextCommands": [
+    "git status --short"
+  ],
+  "reason": "Workspace has dirty or untracked files; inspect ownership before opening a new demand.",
+  "reasonCode": "dirty-workspace-close",
+  "confidence": "medium",
+  "blockedReason": null,
+  "nextAction": "Attribute dirty worktree changes and close local delivery before opening a new demand.",
+  "facts": {
+    "projectDecisionPath": "docs/xian-harness/project/next-decision.json",
+    "projectSummaryPath": "docs/xian-harness/project/next-decision.md",
+    "projectStatusPath": "docs/xian-harness/project/project-status.json",
+    "docSyncReportPath": "docs/xian-harness/project/doc-sync-report.json",
+    "selectedSnapshotPath": null,
+    "selectedSummaryPath": null,
+    "projectDocuments": [
+      {
+        "path": "docs/README.md",
+        "role": "Project Documentation Index",
+        "class": "active-entry",
+        "audience": [
+          "human",
+          "agent"
+        ],
+        "sourceOfTruth": [
+          "docs directory",
+          "Project Document Registry"
+        ],
+        "updateCommand": "xian-harness project docs-sync --target <target-project> --fix",
+        "stalePolicy": "Must link the active project entry documents without broken local links.",
+        "communicates": [
+          "documentation entrypoints",
+          "where to read project status, requirements, backlog, and operating rules"
+        ],
+        "nextAction": "Follow the current-status, requirements, todo, or operating-policy links for the task at hand.",
+        "status": "present",
+        "title": "文档索引"
+      },
+      {
+        "path": "docs/项目说明.md",
+        "role": "Project Brief",
+        "class": "canonical-source",
+        "audience": [
+          "human",
+          "agent"
+        ],
+        "sourceOfTruth": [
+          "manual project brief",
+          "product positioning decisions"
+        ],
+        "updateCommand": null,
+        "stalePolicy": "Manual document; update when the project identity, audience, or boundary changes.",
+        "communicates": [
+          "project identity",
+          "target users",
+          "product boundary"
+        ],
+        "nextAction": "Use docs/项目状态.md for current progress and docs/需求文档.md for requirement status.",
+        "status": "present",
+        "title": "项目说明"
+      },
+      {
+        "path": "docs/项目基线.md",
+        "role": "Project Baseline",
+        "class": "generated-surface",
+        "audience": [
+          "human",
+          "agent"
+        ],
+        "sourceOfTruth": [
+          "project marker inspection",
+          "docs/xian-harness/project-risks.json",
+          "docs/xian-harness/project-boundaries.json"
+        ],
+        "updateCommand": "xian-harness docs render --doc project-baseline --target <target-project> --fix",
+        "stalePolicy": "Render freshness is checked against baseline facts by docs status.",
+        "communicates": [
+          "project roots",
+          "runtime entrypoints",
+          "profile and baseline risks"
+        ],
+        "nextAction": "Use it to choose the correct cwd, profile, and verification entrypoint before changing code.",
+        "status": "present",
+        "title": "项目基线"
+      },
+      {
+        "path": "docs/项目开发纪律.md",
+        "role": "Project Discipline",
+        "class": "operating-policy",
+        "audience": [
+          "human",
+          "agent"
+        ],
+        "sourceOfTruth": [
+          "AGENTS.md",
+          "docs/xian-harness/current-change-protocol.md",
+          "docs/xian-harness/slimming-product-contract.md"
+        ],
+        "updateCommand": null,
+        "stalePolicy": "Manual operating agreement; update when lifecycle, evidence, or commit rules change.",
+        "communicates": [
+          "work rules",
+          "commit and evidence policy",
+          "canonical facts versus generated views"
+        ],
+        "nextAction": "Follow this document before opening or closing a governed/audit change.",
+        "status": "present",
+        "title": "项目开发纪律"
+      },
+      {
+        "path": "docs/项目情况.md",
+        "role": "Project Situation",
+        "class": "diagnostic-surface",
+        "audience": [
+          "human",
+          "agent"
+        ],
+        "sourceOfTruth": [
+          "Project Situation inspection",
+          "docs/xian-harness/project-risks.json",
+          "docs/xian-harness/capability-registry.json"
+        ],
+        "updateCommand": "xian-harness docs render --doc project-situation --target <target-project> --fix",
+        "stalePolicy": "Rendered diagnostic surface; refresh for takeover, diagnosis, or risk review.",
+        "communicates": [
+          "diagnostic snapshot",
+          "capability and risk signals",
+          "active source code signals"
+        ],
+        "nextAction": "Use this for project takeover or diagnosis, not as the daily next-step router.",
+        "status": "present",
+        "title": "项目情况"
+      },
+      {
+        "path": "docs/项目状态.md",
+        "role": "Project Status",
+        "class": "generated-surface",
+        "audience": [
+          "human",
+          "agent"
+        ],
+        "sourceOfTruth": [
+          ".xian-harness/state.yaml",
+          "docs/xian-harness/project/project-status.json",
+          "docs/xian-harness/project/next-decision.json"
+        ],
+        "updateCommand": "xian-harness docs render --doc project-status --target <target-project> --fix",
+        "stalePolicy": "Rendered current-progress surface; refresh after lifecycle, backlog, or projection facts change.",
+        "communicates": [
+          "current progress",
+          "active change and blockers",
+          "recommended next action"
+        ],
+        "nextAction": "Follow the Recommended Next Step or run xian-harness continue --target <target-project> --json.",
+        "status": "present",
+        "title": "项目状态"
+      },
+      {
+        "path": "docs/需求文档.md",
+        "role": "Requirement",
+        "class": "canonical-source",
+        "audience": [
+          "human",
+          "agent"
+        ],
+        "sourceOfTruth": [
+          "manual product requirements",
+          "linked change evidence"
+        ],
+        "updateCommand": null,
+        "stalePolicy": "Manual canonical source; update when requirements, status, or acceptance boundaries change.",
+        "communicates": [
+          "requirements",
+          "product boundaries",
+          "linked changes and evidence"
+        ],
+        "nextAction": "Open or link backlog/change items for accepted requirement gaps.",
+        "status": "present",
+        "title": "需求文档"
+      },
+      {
+        "path": "docs/待办清单.md",
+        "role": "Todo List",
+        "class": "generated-surface",
+        "audience": [
+          "human",
+          "agent"
+        ],
+        "sourceOfTruth": [
+          "docs/xian-harness/backlog/registry.json",
+          "docs/xian-harness/project/project-status.json",
+          "ProjectWorkQueue"
+        ],
+        "updateCommand": "xian-harness docs render --doc todo-list --target <target-project> --fix",
+        "stalePolicy": "Rendered backlog surface; refresh after todo/backlog import, promote, close, or reject.",
+        "communicates": [
+          "actionable backlog queue",
+          "promoted or parked changes",
+          "next command for each item"
+        ],
+        "nextAction": "Use xian-harness todo/backlog commands; do not edit the generated markdown directly.",
+        "status": "present",
+        "title": "待办清单"
+      }
+    ],
+    "workspace": {
+      "sourceControl": {
+        "type": "git",
+        "present": true,
+        "branch": "master",
+        "upstream": "origin/master",
+        "ahead": 2,
+        "behind": null,
+        "gitRoot": ".",
+        "pathspec": ".",
+        "dirtyCount": 7,
+        "untrackedCount": 1
+      },
+      "commitPolicy": {
+        "staging": "path-scoped",
+        "push": "explicit-only",
+        "profileScoped": true,
+        "ruleSource": "AGENTS.md and active profile"
+      },
+      "artifactBoundary": {
+        "status": "none",
+        "rootCount": 0,
+        "fileCount": 0,
+        "bytes": 0,
+        "roots": [],
+        "summary": "No heavy generated artifact root was detected in the current workspace status.",
+        "nextAction": "Continue normal path-scoped delivery attribution."
+      },
+      "riskLevel": "dirty",
+      "summary": "Git workspace has 7 modified/staged and 1 untracked file(s) under the selected target path."
+    },
+    "projectSituation": {
+      "identity": {
+        "recommendedProfile": "base",
+        "presentMarkers": [],
+        "runtime": []
+      },
+      "entrypoints": [
+        {
+          "path": "package.json",
+          "kind": "node-package",
+          "status": "missing"
+        },
+        {
+          "path": "pom.xml",
+          "kind": "maven",
+          "status": "missing"
+        },
+        {
+          "path": "build.gradle",
+          "kind": "gradle",
+          "status": "missing"
+        },
+        {
+          "path": "settings.gradle",
+          "kind": "gradle-settings",
+          "status": "missing"
+        },
+        {
+          "path": "requirements.txt",
+          "kind": "python-requirements",
+          "status": "missing"
+        },
+        {
+          "path": "pyproject.toml",
+          "kind": "python-project",
+          "status": "missing"
+        },
+        {
+          "path": "go.mod",
+          "kind": "go-module",
+          "status": "missing"
+        },
+        {
+          "path": "Cargo.toml",
+          "kind": "rust-cargo",
+          "status": "missing"
+        },
+        {
+          "path": "docker-compose.yml",
+          "kind": "docker-compose",
+          "status": "missing"
+        },
+        {
+          "path": "Dockerfile",
+          "kind": "dockerfile",
+          "status": "missing"
+        }
+      ],
+      "structure": {
+        "topLevelDirectories": [
+          ".github",
+          "docs",
+          "hooks",
+          "prompts",
+          "references",
+          "tests"
+        ],
+        "topLevelFiles": [
+          ".gitignore",
+          "AGENTS.md",
+          "CLAUDE.md",
+          "install.sh",
+          "LICENSE",
+          "policy.example.conf",
+          "README_EN.md",
+          "README.md",
+          "SKILL.md"
+        ]
+      },
+      "baseline": {
+        "path": "docs/项目基线.md",
+        "status": "present",
+        "riskItemCount": 2,
+        "topRisks": [
+          {
+            "severity": "P1",
+            "summary": "Git hooks can be silently bypassed by path-resolution mistakes",
+            "evidence": "baseline-calibration",
+            "mitigation": "Use Git-resolved shared hook paths, reject core.hooksPath, parse staged names as NUL-delimited data, and retain regression coverage."
+          },
+          {
+            "severity": "P2",
+            "summary": "External hook managers require manual integration",
+            "evidence": "baseline-calibration",
+            "mitigation": "Fail fast on core.hooksPath and document ownership, backup, and manual chaining behavior."
+          }
+        ]
+      },
+      "codeSignals": {
+        "totalCount": 0,
+        "byType": {
+          "TODO": 0,
+          "FIXME": 0
+        },
+        "samples": [],
+        "scannedFileCount": 3,
+        "skippedFileCount": 0
+      },
+      "riskLevel": "attention",
+      "summary": "Project baseline has 2 risk item(s), and code scan found 0 TODO/FIXME signal(s)."
+    }
+  },
+  "direction": {
+    "currentSituation": "Project has no non-terminal changes available to continue; 1 terminal history change(s) are folded.",
+    "processDebt": [
+      {
+        "description": "Workspace has 7 dirty and 1 untracked file(s)",
+        "severity": "soft-debt"
+      },
+      {
+        "description": "Rendered document freshness drift is advisory; review doc-sync only when planning docs work.",
+        "severity": "background"
+      }
+    ],
+    "recommendedTarget": "project-level next work",
+    "reason": "Workspace has dirty or untracked files; inspect ownership before opening a new demand.",
+    "minimumNextStep": "Attribute dirty worktree changes and close local delivery before opening a new demand.",
+    "nextSkill": "xian-commit",
+    "nextActionSource": "project-recommendation"
+  }
+}

@@ -1,6 +1,6 @@
 # Project Status
 
-- Generated at: machine-rendered
+- Generated at: 2026-07-18T23:38:50+08:00
 - Risk level: attention
 - Active change: none
 - Change count: 1
@@ -31,7 +31,7 @@
 
 | Change | Completion | Evidence | Residual Risk | Next |
 |---|---|---|---|---|
-| none | none | none | none | `xian-harness continue --target . --json` |
+| fix-install-update-safety | closed | docs/xian-harness/changes/fix-install-update-safety/gate.json (pass) | none recorded | `xian-harness continue --target . --json` |
 
 ## 阻塞与风险
 
@@ -87,12 +87,12 @@
 |---|---|
 | Source control | git |
 | Branch | master |
-| Ahead / behind |  /  |
+| Ahead / behind | 2 /  |
 | Dirty / untracked | 0 / 0 |
 | Risk level | clean |
 | Artifact boundary | none |
 
-Workspace continuity is normalized for rendered project status freshness.
+Workspace continuity is intentionally normalized in committed project-status surfaces; use xian-harness continue or project status JSON refresh for live dirty/untracked counts.
 
 No heavy generated artifact root was detected in the current workspace status.
 
@@ -112,5 +112,3 @@ No heavy generated artifact root was detected in the current workspace status.
 | Priority | Path | Line | Text | Next |
 |---|---|---:|---|---|
 | none |  |  | none | `xian-harness todo list --target . --json` |
-
-<!-- sourceHash: b44452fde765de40f18c72edcb72bd30ab93b02375687a8ea3789482b5ac0115 -->

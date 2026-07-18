@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "changeId": "fix-install-update-safety",
+  "target": "<target-project>",
+  "status": "closed",
+  "closedAt": "2026-07-18T23:37:58+08:00",
+  "mode": "governed",
+  "outcome": "verified",
+  "closePath": "docs/xian-harness/changes/fix-install-update-safety/close.json",
+  "verifyResultPath": "docs/xian-harness/changes/fix-install-update-safety/verify.json",
+  "gateResultPath": "docs/xian-harness/changes/fix-install-update-safety/gate.json",
+  "gate": {
+    "required": true,
+    "status": "pass",
+    "path": "docs/xian-harness/changes/fix-install-update-safety/gate.json",
+    "reason": null
+  },
+  "evidence": [
+    "docs/xian-harness/changes/fix-install-update-safety/change.md",
+    "docs/xian-harness/changes/fix-install-update-safety/verify.json",
+    "docs/xian-harness/changes/fix-install-update-safety/gate.json"
+  ],
+  "lifecycleCompaction": null,
+  "cost": {
+    "artifactScope": "close-action-written-facts",
+    "artifactCount": 2,
+    "note": "Counts only facts written by the close action itself: close.json and the change.closed event. Use xian-harness cost artifacts for full change directory artifact budget."
+  },
+  "state": {
+    "version": 1,
+    "changeId": "fix-install-update-safety",
+    "mode": "governed",
+    "tier": "standard",
+    "tierDecision": {
+      "declaredTier": "standard",
+      "effectiveTier": "standard",
+      "riskSignals": [],
+      "forcedUpgrade": null,
+      "downgrade": null
+    },
+    "phase": "archived",
+    "terminalKind": "governed-closed",
+    "activationStatus": "archived",
+    "isolation": "branch",
+    "executionPause": null,
+    "engineeringTrace": null,
+    "sourceRefs": [],
+    "parentRefs": [],
+    "language": {
+      "default": "zh-CN",
+      "protocolLanguage": "en",
+      "businessLanguage": "zh-CN",
+      "codeAnchorLanguage": "en"
+    },
+    "cost": {
+      "tokenUsage": null,
+      "elapsedSeconds": null,
+      "commitCount": 0,
+      "artifactCount": 1
+    },
+    "nextAction": "Governed close completed. Review close.json for final evidence."
+  }
+}

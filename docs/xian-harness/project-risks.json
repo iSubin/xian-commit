@@ -13,7 +13,11 @@
       "severity": "P1",
       "likelihood": "low",
       "impact": "Sensitive-path and commit-message guardrails may not run.",
-      "mitigation": "Use Git-resolved shared hook paths, reject core.hooksPath, parse staged names as NUL-delimited data, and retain regression coverage."
+      "mitigation": "Use Git-resolved shared hook paths, reject core.hooksPath, parse staged names as NUL-delimited data, and retain regression coverage.",
+      "provenance": {
+        "introducedAt": "baseline-calibration",
+        "lastTouchedAt": "baseline-calibration"
+      }
     },
     {
       "id": "external-hook-interoperability",
@@ -24,7 +28,11 @@
       "severity": "P2",
       "likelihood": "medium",
       "impact": "A user may assume both hook sets execute when only one owner is active.",
-      "mitigation": "Fail fast on core.hooksPath and document ownership, backup, and manual chaining behavior."
+      "mitigation": "Fail fast on core.hooksPath and document ownership, backup, and manual chaining behavior.",
+      "provenance": {
+        "introducedAt": "baseline-calibration",
+        "lastTouchedAt": "baseline-calibration"
+      }
     }
   ]
 }

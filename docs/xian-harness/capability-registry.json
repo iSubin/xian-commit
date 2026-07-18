@@ -12,7 +12,11 @@
       "status": "active",
       "maturityLevel": "stable",
       "owningSkill": "xian-commit",
-      "evidence": ["SKILL.md", "install.sh", "hooks/", "tests/"]
+      "evidence": ["SKILL.md", "install.sh", "hooks/", "tests/"],
+      "provenance": {
+        "introducedAt": "baseline-calibration",
+        "lastTouchedAt": "baseline-calibration"
+      }
     }
   ]
 }

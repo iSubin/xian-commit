@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-18T23:38:51+08:00",
+  "watermarks": [
+    {
+      "surface": "project-status-cache",
+      "status": "idle",
+      "lastEventId": "7eaded55-4020-4a3a-95af-10bf80981ba2",
+      "lastSourceFingerprint": "d7e0b1f193c1859e82a3aa1e276e7b71a9d9da35752fdc3378029426161a641f",
+      "updatedAt": "2026-07-18T23:38:51+08:00",
+      "reason": "drained by change projection drain"
+    },
+    {
+      "surface": "rendered-docs",
+      "status": "idle",
+      "lastEventId": "7eaded55-4020-4a3a-95af-10bf80981ba2",
+      "lastSourceFingerprint": "d7e0b1f193c1859e82a3aa1e276e7b71a9d9da35752fdc3378029426161a641f",
+      "updatedAt": "2026-07-18T23:38:51+08:00",
+      "reason": "drained by change projection drain"
+    },
+    {
+      "surface": "project-decision",
+      "status": "idle",
+      "lastEventId": "7eaded55-4020-4a3a-95af-10bf80981ba2",
+      "lastSourceFingerprint": "d7e0b1f193c1859e82a3aa1e276e7b71a9d9da35752fdc3378029426161a641f",
+      "updatedAt": "2026-07-18T23:38:51+08:00",
+      "reason": "drained by change projection drain"
+    }
+  ]
+}
