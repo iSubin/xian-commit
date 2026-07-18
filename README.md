@@ -8,6 +8,8 @@
 
 它不是 Node/Python 包，也不是常驻服务；运行时依赖 Git、兼容 POSIX 的 shell 与标准 Unix 工具，以及用于中文与 emoji 提交信息检查的 Perl。
 
+> **安装范围：xian-commit 仅支持工程级安装。** 安装器会把 Skill、policy 和 hooks 写入当前目标 Git 仓库；不会安装到 `~/.codex/skills`、`~/.claude/skills` 等 user 级目录，也不会作为全局 Skill 自动作用于其他工程。每个需要启用 xian-commit 的工程都必须单独安装、验证和更新。
+
 ## 为什么需要 xian-commit
 
 AI Coding Agent 能写代码，也会在交付最后一步犯具体而昂贵的错误：把 runtime 或敏感文件暂存、写出 `feat: feat ...` 这类重复类型标题，或未检查 upstream 是否分叉就直接推送。
@@ -125,6 +127,8 @@ hooks 会从下一次 `git commit` 或 `git push` 起生效。若 Codex 或 Clau
 pre-push 只判断当前检出的普通分支及其 upstream：detached HEAD 会直接放行，也不会解析任意 `git push` 的远端目标 ref。因此 `branch.protected` 与 `never` 是客户端护栏，不能替代服务端分支保护。
 
 ## 安装与维护命令
+
+以下命令均以当前目标 Git 仓库为作用域，不提供 user 级或全局安装。
 
 | 命令 | 是否写入目标仓库 | 用途 |
 | --- | --- | --- |

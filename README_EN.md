@@ -8,6 +8,8 @@ It keeps Agents on standard Git while adding configurable, deterministic checks 
 
 It is not a Node/Python package or a resident service. Runtime prerequisites are Git, a POSIX-compatible shell with standard Unix tools, and Perl for Chinese- and emoji-related commit-message checks.
 
+> **Installation scope: xian-commit supports project-level installation only.** The installer writes the Skill, policy, and hooks into the current target Git repository. It does not install into user-level locations such as `~/.codex/skills` or `~/.claude/skills`, and it does not apply globally to other projects. Each project that uses xian-commit must be installed, verified, and updated separately.
+
 ## Why xian-commit
 
 AI Coding Agents can write code, but still make concrete and expensive mistakes at the last delivery step: staging runtime or sensitive files, writing duplicate-type titles such as `feat: feat ...`, or pushing without first checking whether the upstream has diverged.
@@ -127,6 +129,8 @@ The target project's rule file is `.xian-commit/config`; see [policy.example.con
 pre-push evaluates only the currently checked-out ordinary branch and its upstream: detached HEAD is passed through, and arbitrary remote target refs in `git push` are not resolved. Therefore, `branch.protected` and `never` are client-side guardrails, not substitutes for server-side branch protection.
 
 ## Installation and maintenance commands
+
+All commands below operate on the current target Git repository. User-level and global installation are not supported.
 
 | Command | Writes to the target repository | Purpose |
 | --- | --- | --- |
