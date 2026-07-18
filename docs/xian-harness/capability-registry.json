@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "type": "capability-registry",
+  "lastUpdatedAt": "2026-07-18T23:32:00+08:00",
+  "lastUpdatedBy": "baseline-calibration",
+  "items": [
+    {
+      "id": "project-git-delivery-governance",
+      "category": "git-delivery",
+      "title": "Project-level Git delivery governance",
+      "description": "Installs Agent Skills, project policy, and deterministic Git hooks into a target repository.",
+      "status": "active",
+      "maturityLevel": "stable",
+      "owningSkill": "xian-commit",
+      "evidence": ["SKILL.md", "install.sh", "hooks/", "tests/"]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "type": "project-risks",
+  "lastUpdatedAt": "2026-07-18T23:32:00+08:00",
+  "lastUpdatedBy": "baseline-calibration",
+  "items": [
+    {
+      "id": "git-hook-silent-bypass",
+      "category": "git-hooks",
+      "title": "Git hooks can be silently bypassed by path-resolution mistakes",
+      "description": "Linked worktrees, custom hooks paths, and quoted filenames can cause a hook to be installed or parsed incorrectly.",
+      "status": "active",
+      "severity": "P1",
+      "likelihood": "low",
+      "impact": "Sensitive-path and commit-message guardrails may not run.",
+      "mitigation": "Use Git-resolved shared hook paths, reject core.hooksPath, parse staged names as NUL-delimited data, and retain regression coverage."
+    },
+    {
+      "id": "external-hook-interoperability",
+      "category": "installation",
+      "title": "External hook managers require manual integration",
+      "description": "Backup hooks and Husky-managed hooks are not automatically chained.",
+      "status": "active",
+      "severity": "P2",
+      "likelihood": "medium",
+      "impact": "A user may assume both hook sets execute when only one owner is active.",
+      "mitigation": "Fail fast on core.hooksPath and document ownership, backup, and manual chaining behavior."
+    }
+  ]
+}
