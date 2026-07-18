@@ -1,0 +1,31 @@
+version: 1
+initializedAt: 2026-07-18T23:08:14+08:00
+activeChange: null
+changes: []
+lastPackInstall:
+  requestedProfile: base
+  effectiveProfile: base
+  sourcePath: <harness-pack-source>
+  sourceSnapshot:
+    manifestPath: manifest.yaml
+    manifestName: xian-harness-pack
+    manifestVersion: 1
+    fileCount: 128
+    contentHash: 53ebdc15c734c6cdad9b152584a53c78bded3d40a06dcf84727b2537fad21f71
+  statePath: .xian-harness/pack-state.json
+  reportPath: docs/xian-harness/pack/install-report.json
+  markdownPath: docs/xian-harness/pack/install-report.md
+  summary:
+    total: 128
+    created: 127
+    unchanged: 1
+    updated: 0
+    conflict: 0
+    installed: 0
+    missing: 0
+    modified: 0
+    outdated: 0
+    removed: 0
+    profileExcluded: 0
+    acceptedDrift: 0
+  installedAt: 2026-07-18T23:08:15+08:00

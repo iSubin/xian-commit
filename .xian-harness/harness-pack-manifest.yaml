@@ -1,0 +1,409 @@
+version: 1
+name: xian-harness-pack
+description: Skill-first and protocol-first AI coding Harness Pack.
+language:
+  default: zh-CN
+  businessLanguage: zh-CN
+  protocolLanguage: en
+  codeAnchorLanguage: en
+entryDocuments:
+  - AGENTS.md
+  - CLAUDE.md
+protocol:
+  projectState: .xian-harness/state.yaml
+  projectProtocol: .xian-harness/harness-protocol.yaml
+  changesRoot: docs/xian-harness/changes
+  evidenceRoot: docs/xian-harness/evidence
+  qualityGateRoot: docs/xian-harness/quality-gates
+  agentsRoot: docs/xian-harness/agents
+  workbenchRoot: docs/xian-harness/workbench
+skillGroups:
+  governance:
+    - xian-open
+    - xian-next
+    - xian-batch
+    - xian-spec
+    - xian-design
+    - xian-plan
+    - xian-build
+    - xian-diagnose
+    - xian-project-startup
+    - xian-project-status
+    - xian-backlog
+    - xian-project-sync
+    - xian-project-research
+    - xian-verify
+    - xian-review
+    - xian-gate
+    - xian-workbench
+    - xian-archive
+    - xian-commit
+    - xian-cost
+    - using-xian-harness
+  experience-governance:
+    - xian-experience
+    - xian-asset-governance
+    - xian-skill-governance
+    - xian-hook-governance
+    - xian-agent-governance
+    - xian-pack-governance
+  ruoyi:
+    - ruoyi-project-init
+    - ruoyi-crud
+    - ruoyi-api
+    - ruoyi-service-dao
+    - ruoyi-database
+    - ruoyi-pc-ui
+    - ruoyi-mobile-ui
+    - ruoyi-permission
+    - ruoyi-quality
+    - ruoyi-deploy
+    - delivery-sync
+    - sync-delivery
+    - module-strip
+    - strip-modules
+  ruoyi-native:
+    - add-skill
+    - add-todo
+    - ai-langchain4j
+    - api-development
+    - app-adapter
+    - architecture-design
+    - backend-annotations
+    - brainstorm
+    - bug-detective
+    - check
+    - cmd-framework-sync
+    - code-patterns
+    - collaborating-with-codex
+    - collaborating-with-gemini
+    - crud
+    - crud-development
+    - data-permission
+    - database-ops
+    - deploy
+    - deployment-guide
+    - dev
+    - dev-startup
+    - env-config
+    - error-handler
+    - exp
+    - exp-sediment
+    - file-oss-management
+    - framework-sync
+    - git-workflow
+    - html-to-code
+    - i18n-development
+    - icon-management
+    - init-docs
+    - iot-mqtt
+    - json-serialization
+    - log-audit
+    - media-processing
+    - message-queue
+    - multi-tenant
+    - next
+    - notification-system
+    - payment-integration
+    - performance-doctor
+    - progress
+    - project-init
+    - project-migration
+    - project-navigator
+    - realtime-communication
+    - redis-cache
+    - scheduled-jobs
+    - security-guard
+    - social-login
+    - start
+    - store-mobile
+    - store-pc
+    - sync
+    - task-tracker
+    - tech-decision
+    - test-development
+    - third-party-api
+    - ui-design-mobile
+    - ui-mobile
+    - ui-pc
+    - uniapp-platform
+    - update-status
+    - utils-toolkit
+    - wechat-integration
+packLayers:
+  core:
+    description: 默认 governed-lite 主路径资产；安装在 base 中，但只承担轻量路由、状态、验证、门禁、关闭和 pack 状态入口。
+    skills:
+      - using-xian-harness
+      - xian-open
+      - xian-next
+      - xian-project-status
+      - xian-backlog
+      - xian-verify
+      - xian-gate
+      - xian-commit
+      - xian-pack-governance
+  advanced-governance:
+    description: 可选治理扩展资产；用于需求、设计、计划、实现、复盘、批量目标、经验沉淀和专项资产治理，不属于默认主路径。
+    skills:
+      - xian-batch
+      - xian-spec
+      - xian-design
+      - xian-plan
+      - xian-build
+      - xian-diagnose
+      - xian-project-startup
+      - xian-project-sync
+      - xian-project-research
+      - xian-review
+      - xian-cost
+      - xian-experience
+      - xian-asset-governance
+      - xian-skill-governance
+      - xian-hook-governance
+      - xian-agent-governance
+  audit:
+    description: 显式 audit closeout 资产；用于 Workbench、人读审计视图、release/archive 证据包和高风险收口。
+    skills:
+      - xian-workbench
+      - xian-archive
+  profile:
+    description: 垂直 profile 资产层；默认 base 不激活，只有目标项目选择对应 profile 时安装。
+    skillGroups:
+      - ruoyi
+      - ruoyi-native
+provenance:
+  skillGroups:
+    governance:
+      origin: xian-agent-harness
+      role: generic-governance
+      description: xian 通用 Harness 治理 skills，负责协议、计划、验证、门禁、Workbench 和归档。
+    experience-governance:
+      origin: xian-agent-harness
+      role: generic-experience-asset-governance
+      description: xian 通用经验治理和分类型资产治理 skills，负责经验候选、资产分类、skill/hook/agent/pack 专项治理和 profile 隔离审查。
+    ruoyi:
+      origin: xian-agent-harness
+      role: ruoyi-adapter
+      description: xian 针对 RuoYi Plus UniApp / Java Web CRUD 场景沉淀的垂直适配 skills。
+    ruoyi-native:
+      origin: references/ruoyi-plus-uniapp/.codex/skills
+      role: upstream-ruoyi-codex
+      description: 从 RuoYi Plus UniApp 参考工程吸收的原生 Codex skills，作为 Java Web 企业开发经验来源。
+      sourceSnapshot:
+        type: git
+        repository: references/ruoyi-plus-uniapp
+        commit: 65e862d0a8e4
+        fullCommit: 65e862d0a8e4be46d6547fa0cc54654d316d9f3e
+        skillPath: .codex/skills
+        dirty: false
+commandGroups:
+  governance:
+    - xian-next
+    - xian-spec
+    - xian-design
+    - xian-plan
+    - xian-build
+    - xian-verify
+    - xian-review
+    - xian-gate
+    - xian-workbench
+    - xian-archive
+  ruoyi:
+    - ruoyi-crud
+    - ruoyi-check
+    - ruoyi-deploy
+    - ruoyi-sync
+    - ruoyi-strip
+hooks:
+  claudeSettings: .claude/settings.json
+  codexHooks: .codex/hooks.json
+  codexHooksSchema: .codex/hooks.schema.json
+  sessionStart: .claude/hooks/session-start.cjs
+  userPromptSubmit: .claude/hooks/user-prompt-submit.cjs
+  preToolUse: .claude/hooks/pre-tool-use.cjs
+  stop: .claude/hooks/stop.cjs
+# Legacy compatibility aliases. These root templates stay installable for older
+# pack consumers, but they are not the authoritative protocol registry.
+templates:
+  requirement: .xian-harness/protocol/templates/requirement.md
+  tasks: .xian-harness/protocol/templates/tasks.md
+  projectStatus: .xian-harness/protocol/templates/project-status.md
+  acceptanceCriteria: .xian-harness/protocol/templates/acceptance-criteria.md
+  verifyReport: .xian-harness/protocol/templates/verify-report.md
+  qualityGateReport: .xian-harness/protocol/templates/quality-gate-report.md
+  workbenchSnapshot: .xian-harness/protocol/templates/workbench-snapshot.md
+  workbenchHtml: docs/xian-harness/workbench/{change-id}/index.html
+  deliveryNote: .xian-harness/protocol/templates/delivery-note.md
+lifecycleContract:
+  change:
+    kind: change-lifecycle
+    ownerSkill: xian-pack-governance
+    stateFile: docs/xian-harness/changes/{change-id}/.change-state.json
+    transitionLog: docs/xian-harness/changes/{change-id}/.change-transition.log
+    phases:
+      - open
+      - spec
+      - plan
+      - build
+      - verify
+      - archived
+    guardActions:
+      build:
+        exitPhase: build
+        command: xian-harness guard {change-id} --target <target-project> --for build --json
+        evidencePath: docs/xian-harness/changes/{change-id}/.change-state.json
+      verify:
+        exitPhase: verify
+        command: xian-harness guard {change-id} --target <target-project> --for verify --json
+        evidencePath: docs/xian-harness/changes/{change-id}/verify/verify-result.json
+      gate:
+        exitPhase: verify
+        command: xian-harness guard {change-id} --target <target-project> --for gate --json
+        evidencePath: docs/xian-harness/changes/{change-id}/gate/gate-result.json
+      archive:
+        exitPhase: archived
+        command: xian-harness guard {change-id} --target <target-project> --for archive --json
+        evidencePath: docs/xian-harness/changes/{change-id}/archive/summary.md
+# Authoritative protocol template registry for new change, docs, hook, agent,
+# and evidence-sample contracts.
+templateRegistry:
+  change:
+    full:
+      proposal: .xian-harness/protocol/templates/change/full/proposal.md
+      design: .xian-harness/protocol/templates/change/full/design.md
+      tasks: .xian-harness/protocol/templates/change/full/tasks.md
+      acceptanceCriteria: .xian-harness/protocol/templates/change/full/acceptance-criteria.md
+      verify: .xian-harness/protocol/templates/change/full/verify.md
+  docs:
+    projectStatus: .xian-harness/protocol/templates/docs/project-status.md
+    projectBaseline: .xian-harness/protocol/templates/docs/project-baseline.md
+    projectDiscipline: .xian-harness/protocol/templates/docs/project-discipline.md
+    goalRunbook: .xian-harness/protocol/templates/docs/goal-runbook.md
+    requirement: .xian-harness/protocol/templates/docs/requirement.md
+    todoList: .xian-harness/protocol/templates/docs/todo-list.md
+    docSyncReport: .xian-harness/protocol/templates/docs/doc-sync-report.md
+    decisionRecord: .xian-harness/protocol/templates/docs/decision-record.md
+    exemplarCatalog: .xian-harness/protocol/templates/docs/exemplar-catalog.md
+  hooks:
+    hookContract: .xian-harness/protocol/templates/hooks/hook-contract.md
+  agents:
+    agentRoleContract: .xian-harness/protocol/templates/agents/agent-role-contract.md
+  evidenceSamples:
+    baseGolden:
+      guide: .xian-harness/protocol/templates/evidence-samples/base-golden/README.md
+      acceptanceCriteria: .xian-harness/protocol/templates/evidence-samples/base-golden/acceptance-criteria.md
+      verifyResult: .xian-harness/protocol/templates/evidence-samples/base-golden/verify-result.json
+      gateResult: .xian-harness/protocol/templates/evidence-samples/base-golden/gate-result.json
+      workbenchSnapshot: .xian-harness/protocol/templates/evidence-samples/base-golden/workbench-snapshot.json
+      archiveSummary: .xian-harness/protocol/templates/evidence-samples/base-golden/archive-summary.md
+      experienceDisposition: .xian-harness/protocol/templates/evidence-samples/base-golden/experience-disposition.json
+standardRegistry:
+  qualityPolicy:
+    kind: quality-policy
+    sourcePath: .xian-harness/adapters/ruoyi/quality-policy.yaml
+    ownerSkill: ruoyi-quality
+    profile: ruoyi
+    gateInput: registryLintSummary
+    evidencePath: docs/xian-harness/changes/{change-id}/gate/registry-lint.json
+  verificationRegistry:
+    kind: verification-registry
+    sourcePath: .xian-harness/adapters/ruoyi/quality-policy.yaml#verificationRegistry.rules
+    ownerSkill: xian-verify
+    profile: ruoyi
+    gateInput: verificationRegistrySummary
+    evidencePath: docs/xian-harness/changes/{change-id}/gate/gate-result.json
+  skillRegistry:
+    kind: skill-registry
+    sourcePath: .xian-harness/skill-registry.json
+    ownerSkill: xian-skill-governance
+    profile: base
+    gateInput: skillRegistrySummary
+    evidencePath: docs/xian-harness/changes/{change-id}/gate/gate-result.json
+  templateRegistry:
+    kind: template-registry
+    sourcePath: .xian-harness/harness-pack-manifest.yaml#templateRegistry
+    ownerSkill: xian-pack-governance
+    profile: base
+    gateInput: templateRegistrySummary
+    evidencePath: docs/xian-harness/changes/{change-id}/gate/gate-result.json
+tools:
+  cliPackage: xian-agent-harness
+  cliCommand: xian-harness
+  role: deterministic-support
+profiles:
+  base:
+    description: 通用 Harness 治理 Profile，只安装 xian-* skills、通用 hooks、xian commands 和模板。
+    includeSkillGroups:
+      - governance
+      - experience-governance
+    includeCommandGroups:
+      - governance
+    activation:
+      defaultForNonRuoyi: true
+  typescript:
+    description: TypeScript / Node 通用垂直 Profile，安装 base + TypeScript 项目入口规则和轻量 registry/bootstrap overlay。
+    extends:
+      - base
+    includeSkillGroups:
+      - governance
+      - experience-governance
+    includeCommandGroups:
+      - governance
+    activation:
+      markers:
+        - package.json
+        - tsconfig.json
+  python:
+    description: Python 通用垂直 Profile，安装 base + Python 项目入口规则和轻量 registry/bootstrap overlay。
+    extends:
+      - base
+    includeSkillGroups:
+      - governance
+      - experience-governance
+    includeCommandGroups:
+      - governance
+    activation:
+      markers:
+        - pyproject.toml
+        - requirements.txt
+        - setup.py
+        - setup.cfg
+        - tox.ini
+        - pytest.ini
+  deployment-ops:
+    description: Deployment / Ops 通用垂直 Profile，安装 base + 部署运维项目入口规则和轻量 registry/bootstrap overlay。
+    extends:
+      - base
+    includeSkillGroups:
+      - governance
+      - experience-governance
+    includeCommandGroups:
+      - governance
+    activation:
+      markers:
+        - Dockerfile
+        - docker-compose.yml
+        - compose.yaml
+        - terraform/
+        - k8s/
+        - kubernetes/
+        - helm/
+        - Chart.yaml
+  ruoyi:
+    description: RuoYi Plus UniApp / Java Web 企业 CRUD 垂直 Profile，安装 base + RuoYi skills、commands 和原生工程经验。
+    extends:
+      - base
+    includeSkillGroups:
+      - governance
+      - experience-governance
+      - ruoyi
+      - ruoyi-native
+    includeCommandGroups:
+      - governance
+      - ruoyi
+    activation:
+      markers:
+        - pom.xml
+        - ruoyi-admin/
+        - ruoyi-modules/
