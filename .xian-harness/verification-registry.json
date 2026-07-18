@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "xian-commit.full",
+      "kind": "unit-test",
+      "severity": "P1",
+      "ownerSkill": "xian-verify",
+      "covers": ["merge-ready.full"],
+      "command": "sh",
+      "args": ["tests/run_tests.sh"],
+      "cwd": ".",
+      "timeoutSeconds": 300
+    },
+    {
+      "id": "xian-commit.install-syntax",
+      "kind": "typecheck",
+      "severity": "P1",
+      "ownerSkill": "xian-verify",
+      "covers": ["merge-ready.typecheck"],
+      "command": "sh",
+      "args": ["-n", "install.sh"],
+      "cwd": ".",
+      "timeoutSeconds": 30
+    },
+    {
+      "id": "xian-commit.diff-check",
+      "kind": "static-review",
+      "severity": "P1",
+      "ownerSkill": "xian-verify",
+      "covers": ["merge-ready.required"],
+      "command": "git",
+      "args": ["diff", "--check"],
+      "cwd": ".",
+      "timeoutSeconds": 30
+    }
+  ]
+}
