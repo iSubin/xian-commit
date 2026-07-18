@@ -1,11 +1,11 @@
 ---
 name: xian-commit
-description: AI coding agent 的 Git delivery governance 入口。当用户要求提交、commit、push、推送、收口或处理 dirty worktree（当前工作区有未提交变化）时使用本 skill。按 prompts/commit-message.md 写 message,调用标准 git 命令,hook/policy 兜底校验。普通 push 由 policy 控制,force push 和破坏性 git 动作必须显式授权。
+description: AI coding agent 的 Git 交付治理入口。当用户要求提交、commit、push、推送、收口或处理 dirty worktree（当前工作区有未提交变化）时使用本 skill。按 prompts/commit-message.md 写 message,调用标准 git 命令,hook/policy 兜底校验。普通 push 由 policy 控制,force push 和破坏性 git 动作必须显式授权。
 ---
 
 # xian-commit 工作流
 
-xian-commit 是面向 code agent 的 Git delivery governance 资产集合。你(AI agent)处理 commit / push / dirty worktree（当前工作区有未提交变化） / commit message / hook guard 时,按下面工作流走。
+xian-commit 是面向 code agent 的 Git 交付治理资产集合。你(AI agent)处理 commit / push / dirty worktree（当前工作区有未提交变化） / commit message / hook 拦截时,按下面工作流走。
 
 ## 核心原则
 
@@ -20,12 +20,12 @@ xian-commit 是面向 code agent 的 Git delivery governance 资产集合。你(
 
 | 用户说法 | 进入路径 |
 |---|---|
-| "提交吧" / "commit it" | local delivery close:检查 dirty worktree（当前工作区有未提交变化）,拆分并执行 commit |
-| "推送一下" / "push" | remote delivery close:检查 clean、ahead/behind、upstream 后执行普通 push |
-| "commit and push" / "提交并推送" | 先 local delivery close,再 remote delivery close;这句话可作为普通 push 授权 |
-| "收口" / "交付一下" | 先读 git 事实;dirty 走 local,clean 且 ahead 走 remote |
+| "提交吧" / "commit it" | 本地交付收口:检查 dirty worktree（当前工作区有未提交变化）,拆分并执行 commit |
+| "推送一下" / "push" | 远端交付收口:检查 clean、ahead/behind、upstream 后执行普通 push |
+| "commit and push" / "提交并推送" | 先本地收口,再远端收口;这句话可作为普通 push 授权 |
+| "收口" / "交付一下" | 先读 git 事实;dirty 走本地收口,clean 且 ahead 走远端收口 |
 
-change finished / archived 只说明业务完成,不代表 Git 交付完成。worktree clean + commit 完成才是 local delivery close;分支不再 ahead 且 push 完成才是 remote delivery close。
+change finished / archived 只说明业务完成,不代表 Git 交付完成。worktree clean + commit 完成才是本地交付收口;分支不再 ahead 且 push 完成才是远端交付收口。
 
 ## commit 流程
 
@@ -44,20 +44,20 @@ git ls-files --others --exclude-standard
 
 把 staged / unstaged / untracked 分成三类:
 
-1. **属于本次交付**: 与用户当前要求或已完成工作一致,可以进入 commit planning。
+1. **属于本次交付**: 与用户当前要求或已完成工作一致,可以进入 commit 计划。
 2. **不属于本次交付**: 暂停并询问用户是保留、拆分、丢弃还是另开处理。
 3. **来源不明**: 暂停,列出文件和判断依据,不要提交。
 
 dirty worktree（当前工作区有未提交变化）只是代码事实,不自动代表可以提交,也不推进任何业务 change 状态。禁止在未归因前 `git add -A`。
 
-### 2. Delivery close runtime states
+### 2. 交付收口的即时状态
 
 xian-commit 不写长期状态,但本轮运行要按 Git 事实判断即时状态:
 
 | 状态 | 判定 | 下一步 |
 |---|---|---|
 | `dirty-unattributed` | staged / unstaged / untracked 尚未归因 | 先归因 |
-| `committable` | 文件归因清楚,提交范围可解释 | 做 commit planning |
+| `committable` | 文件归因清楚,提交范围可解释 | 做 commit 计划 |
 | `local-delivered` | worktree clean,本地 commit 完成 | 检查是否 ahead |
 | `pending-push` | worktree clean 且 branch ahead | 等待本轮明确 push 授权 |
 | `remote-delivered` | worktree clean 且 branch 不 ahead | 无需 Git 收口 |
@@ -130,7 +130,7 @@ git push
 
 如果用户没有明确说 push,只报告当前分支 ahead/behind 状态,不要代替用户发布远端。
 
-例外:`push.mode=auto-safe` 且 local delivery close 后安全条件全部满足时,可以执行普通 push。post-commit 仍会触发 `pre-push` 做第二道 behind / protected / never 校验。auto-safe 不允许 `--force`、`--force-with-lease` 或任何会改写历史的动作。
+例外:`push.mode=auto-safe` 且本地交付收口后安全条件全部满足时,可以执行普通 push。post-commit 仍会触发 `pre-push` 做第二道 behind / protected / never 校验。auto-safe 不允许 `--force`、`--force-with-lease` 或任何会改写历史的动作。
 
 ## explicit-only 动作
 
@@ -170,9 +170,9 @@ policy/config 是规则,不是运行状态。不要在里面记录 change 阶段
 
 本 skill 同时适用于 Codex 和 Claude Code。第一版不分叉平台专用说明,如果未来触发语义明显分化再拆源文件。
 
-changelog 只做非阻断提醒,不作为 commit / push / gate 的 blocking gate。
+changelog 只做非阻断提醒,不作为 commit / push / gate 的阻断条件。
 
-## changelog policy
+## changelog 策略
 
 默认不生成、不维护 changelog。只有项目 policy 或用户明确要求时,才检查 staged 范围是否包含对应 changelog 文件。
 
