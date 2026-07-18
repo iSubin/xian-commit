@@ -79,4 +79,55 @@ test ! -f "$TMP/.git/hooks/pre-commit"
 expect_pass "skill install 不应安装 hooks" $?
 cleanup_repo "$TMP"
 
+TMP=$(setup_repo "$PROJECT_ROOT")
+echo "base" > "$TMP/base.txt"
+git -C "$TMP" add base.txt
+git -C "$TMP" commit -qm "initial commit"
+WORKTREE_PARENT=$(mktemp -d 2>/dev/null || mktemp -d -t xian-worktree)
+WORKTREE="$WORKTREE_PARENT/linked"
+git -C "$TMP" worktree add -q -b linked "$WORKTREE"
+(cd "$WORKTREE" && sh "$PROJECT_ROOT/install.sh" >"$WORKTREE/install.log" 2>&1)
+expect_pass "linked worktree 中完整安装应通过" $?
+test -x "$TMP/.git/hooks/pre-commit"
+expect_pass "linked worktree 应安装到共享 hooks 目录" $?
+WORKTREE_GIT_DIR=$(git -C "$WORKTREE" rev-parse --git-dir)
+test ! -f "$WORKTREE_GIT_DIR/hooks/pre-commit"
+expect_pass "linked worktree 私有 git-dir 下不应写入 hooks" $?
+(cd "$WORKTREE" && sh "$PROJECT_ROOT/install.sh" verify >"$WORKTREE/verify.log" 2>&1)
+expect_pass "linked worktree verify 应检查实际生效的 hooks" $?
+echo "bad" > "$WORKTREE/bad.txt"
+git -C "$WORKTREE" add bad.txt
+git -C "$WORKTREE" commit -m "bad" 2>"$WORKTREE/commit.err"
+expect_fail "linked worktree 实际提交应触发已安装 hook" $?
+git -C "$TMP" worktree remove --force "$WORKTREE"
+cleanup_repo "$WORKTREE_PARENT"
+cleanup_repo "$TMP"
+
+TMP=$(setup_repo "$PROJECT_ROOT")
+cd "$TMP"
+mkdir -p .husky
+printf '#!/bin/sh\n# existing husky hook\nexit 0\n' > .husky/pre-commit
+chmod +x .husky/pre-commit
+git config core.hooksPath .husky
+sh "$PROJECT_ROOT/install.sh" >"$TMP/custom-hooks-install.log" 2>&1
+expect_fail "core.hooksPath 场景下默认安装应明确拒绝" $?
+expect_contains "hooks 安装拒绝应提到 core.hooksPath" "$(cat "$TMP/custom-hooks-install.log")" "core.hooksPath"
+expect_contains "现有自定义 hook 不应被覆盖" "$(cat .husky/pre-commit)" "existing husky hook"
+test ! -f "$TMP/.git/hooks/pre-commit"
+expect_pass "core.hooksPath 安装失败时不应写入默认 hooks" $?
+test ! -d "$TMP/.codex/skills/xian-commit"
+expect_pass "core.hooksPath 安装失败时不应部分写入 Skill" $?
+cleanup_repo "$TMP"
+
+TMP=$(setup_repo "$PROJECT_ROOT")
+cd "$TMP"
+sh "$PROJECT_ROOT/install.sh" >"$TMP/install-before-custom-hooks.log" 2>&1
+expect_pass "设置 core.hooksPath 前的完整安装应通过" $?
+mkdir -p .husky
+git config core.hooksPath .husky
+sh "$PROJECT_ROOT/install.sh" verify >"$TMP/custom-hooks-verify.log" 2>&1
+expect_fail "core.hooksPath 启用后 verify 应拒绝假阳性" $?
+expect_contains "verify 拒绝应提到 core.hooksPath" "$(cat "$TMP/custom-hooks-verify.log")" "core.hooksPath"
+cleanup_repo "$TMP"
+
 summary

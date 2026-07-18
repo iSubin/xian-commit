@@ -46,8 +46,40 @@ if [ -z "$GIT_DIR" ]; then
 fi
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 
-# 解析为绝对路径
-HOOKS_DST=$(cd "$GIT_DIR" && pwd)/hooks
+# linked worktree 的 $GIT_DIR 是私有目录，但 hooks 默认位于共享 git-dir。
+# 交给 Git 解析实际路径，避免手工拼接 $GIT_DIR/hooks。
+CORE_HOOKS_PATH_SET=0
+CORE_HOOKS_PATH=""
+if CORE_HOOKS_PATH=$(git config --get core.hooksPath 2>/dev/null); then
+    CORE_HOOKS_PATH_SET=1
+fi
+
+reject_custom_hooks_path() {
+    [ "$CORE_HOOKS_PATH_SET" -eq 0 ] && return 0
+    hooks_path_display="$CORE_HOOKS_PATH"
+    [ -n "$hooks_path_display" ] || hooks_path_display="<empty>"
+    cat >&2 <<EOF
+xian-commit $MODE: 检测到 core.hooksPath=${hooks_path_display}。
+为避免覆盖 Husky 等现有 hook 管理器，xian-commit 不会直接安装或验证 hooks。
+请先取消 core.hooksPath，或手动将 xian-commit hooks 串联到现有 hook 管理器。
+EOF
+    exit 1
+}
+
+case "$MODE" in
+    all|update|hooks|verify) reject_custom_hooks_path ;;
+esac
+
+HOOKS_PATH=$(git -C "$REPO_ROOT" rev-parse --git-path hooks 2>/dev/null)
+if [ -z "$HOOKS_PATH" ]; then
+    echo "xian-commit install: 无法解析 Git hooks 目录。" >&2
+    exit 1
+fi
+case "$HOOKS_PATH" in
+    /*) HOOKS_DST="$HOOKS_PATH" ;;
+    *) HOOKS_DST="$REPO_ROOT/$HOOKS_PATH" ;;
+esac
+
 CODEX_SKILL_DST="$REPO_ROOT/.codex/skills/xian-commit"
 CLAUDE_SKILL_DST="$REPO_ROOT/.claude/skills/xian-commit"
 POLICY_DST="$REPO_ROOT/.xian-commit"

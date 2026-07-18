@@ -88,7 +88,7 @@ hooks 会从下一次 `git commit` 或 `git push` 起生效。若 Codex 或 Clau
 
 这些 hooks 同样作用于人手输入的 `git commit` / `git push`，不是只对 Agent 生效。
 
-若目标仓库已有内容不同的同名 hook，安装器会备份为 `*.pre-xian-commit.bak`，再写入 xian-commit 的 hook。备份 hook **不会自动串联执行**；请按目标项目的实际需求手动组合两者逻辑后再使用。
+若目标仓库已有内容不同的同名 hook，安装器会备份为 `*.pre-xian-commit.bak`，再写入 xian-commit 的 hook。备份 hook **不会自动串联执行**；请按目标项目的实际需求手动组合两者逻辑后再使用。linked worktree 会将 hooks 安装到 Git 解析的共享 hooks 目录；若已配置 `core.hooksPath`，安装和 `verify` 会明确拒绝，避免覆盖 Husky 等现有 hook 管理器。请先取消该配置，或手动串联两套 hooks。
 
 ## 与常见工具的区别
 

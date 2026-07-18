@@ -90,7 +90,7 @@ If any condition is not met, no automatic push occurs. If an auto-safe push fail
 
 These hooks also apply to `git commit` and `git push` entered by people; they are not limited to Agents.
 
-If the target repository already has a same-named hook with different contents, the installer backs it up as `*.pre-xian-commit.bak` and writes the xian-commit hook. Backup hooks are **not automatically chained**; manually compose the two behaviors to suit the target project before use.
+If the target repository already has a same-named hook with different contents, the installer backs it up as `*.pre-xian-commit.bak` and writes the xian-commit hook. Backup hooks are **not automatically chained**; manually compose the two behaviors to suit the target project before use. In a linked worktree, hooks are installed in the shared hooks directory resolved by Git. If `core.hooksPath` is configured, installation and `verify` fail explicitly to avoid overwriting an existing hook manager such as Husky; unset the configuration or chain the two hook sets manually.
 
 ## How it differs from common tools
 

@@ -155,4 +155,55 @@ git commit -m "feat: 测试 policy 允许路径
 expect_pass "policy path.allow 应优先于 path.deny" $?
 cleanup_repo "$TMP"
 
+# 用例 13: 子目录中的固定敏感文件名应拦截
+TMP=$(setup_repo "$PROJECT_ROOT" pre-commit)
+mkdir -p "$TMP/.ssh" "$TMP/sub"
+echo "PRIVATE KEY DATA" > "$TMP/.ssh/id_rsa"
+echo "metadata" > "$TMP/sub/.DS_Store"
+cd "$TMP"
+git add .ssh/id_rsa sub/.DS_Store
+git commit -m "feat: 测试嵌套敏感文件
+
+子目录中的固定敏感文件名也应被拦截。" 2>err.log
+expect_fail "子目录中的 id_rsa 和 .DS_Store 应拦截" $?
+expect_contains "错误提示应包含嵌套 id_rsa" "$(cat err.log 2>/dev/null)" ".ssh/id_rsa"
+expect_contains "错误提示应包含嵌套 .DS_Store" "$(cat err.log 2>/dev/null)" "sub/.DS_Store"
+cleanup_repo "$TMP"
+
+# 用例 14: 子目录中的 .xian-relay 路径应拦截
+TMP=$(setup_repo "$PROJECT_ROOT" pre-commit)
+mkdir -p "$TMP/sub/.xian-relay/changes/abc"
+echo "approved: true" > "$TMP/sub/.xian-relay/changes/abc/gate.md"
+cd "$TMP"
+git add sub/.xian-relay/changes/abc/gate.md
+git commit -m "feat: 测试嵌套 xian-relay 路径
+
+子目录中的 xian-relay 路径也应被拦截。" 2>err.log
+expect_fail "子目录中的 .xian-relay 路径应拦截" $?
+cleanup_repo "$TMP"
+
+# 用例 15: 中文敏感文件名应拦截
+TMP=$(setup_repo "$PROJECT_ROOT" pre-commit)
+echo "temporary" > "$TMP/临时文件.tmp"
+cd "$TMP"
+git add "临时文件.tmp"
+git commit -m "feat: 测试中文敏感文件名
+
+非 ASCII 路径不应绕过黑名单。" 2>err.log
+expect_fail "中文 *.tmp 文件应拦截" $?
+expect_contains "错误提示应保留中文文件名" "$(cat err.log 2>/dev/null)" "临时文件.tmp"
+cleanup_repo "$TMP"
+
+# 用例 16: 含空格的敏感文件名应作为一个完整路径拦截
+TMP=$(setup_repo "$PROJECT_ROOT" pre-commit)
+echo "temporary" > "$TMP/notes with spaces.tmp"
+cd "$TMP"
+git add "notes with spaces.tmp"
+git commit -m "feat: 测试空格敏感文件名
+
+含空格的路径不应被拆词后漏过。" 2>err.log
+expect_fail "含空格的 *.tmp 文件应拦截" $?
+expect_contains "错误提示应保留完整空格路径" "$(cat err.log 2>/dev/null)" "notes with spaces.tmp"
+cleanup_repo "$TMP"
+
 summary

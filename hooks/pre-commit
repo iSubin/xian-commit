@@ -49,6 +49,7 @@ fi
 # 注意:不要太宽,避免误杀合法文件(如 debug.py)
 BLACKLIST_PATTERNS="
 .xian-relay*
+*/.xian-relay*
 *.tmp
 *.swp
 *.swo
@@ -73,42 +74,72 @@ if [ -n "$configured_deny" ]; then
 $configured_deny"
 fi
 
-# 取 staged 文件
-staged_files=$(git diff --cached --name-only)
+# 对传入的完整路径做匹配。该内部模式由 xargs -0 分批调用，
+# 因此空格、中文和换行都不会在进入 shell 前被拆分或转义。
+check_paths() {
+    found=0
+    for file do
+        allowed=0
+        for pattern in $ALLOW_PATTERNS; do
+            [ -z "$pattern" ] && continue
+            case "$file" in
+                $pattern)
+                    allowed=1
+                    break
+                    ;;
+            esac
+        done
+        if [ "$allowed" -eq 1 ]; then
+            continue
+        fi
 
-if [ -z "$staged_files" ]; then
+        basename=${file##*/}
+        for pattern in $BLACKLIST_PATTERNS; do
+            [ -z "$pattern" ] && continue
+            matched=0
+            case "$file" in
+                $pattern) matched=1 ;;
+            esac
+            if [ "$matched" -eq 0 ]; then
+                case "$basename" in
+                    $pattern) matched=1 ;;
+                esac
+            fi
+            if [ "$matched" -eq 1 ]; then
+                printf '  - %s   (匹配黑名单 %s)\n' "$file" "$pattern"
+                found=1
+                break
+            fi
+        done
+    done
+    [ "$found" -eq 0 ]
+}
+
+if [ "${1:-}" = "--check-paths" ]; then
+    shift
+    check_paths "$@"
+    exit $?
+fi
+
+# -z 让 Git 以 NUL 分隔原始路径，xargs -0 再把每个路径完整传入内部匹配模式。
+staged_list=$(mktemp 2>/dev/null || mktemp -t xian-commit-staged)
+trap 'rm -f "$staged_list"' 0 1 2 3 15
+if ! git -c core.quotepath=false diff --cached --name-only -z > "$staged_list"; then
+    echo "xian-commit pre-commit: 无法读取 staged 文件。" >&2
+    exit 1
+fi
+
+if [ ! -s "$staged_list" ]; then
     exit 0
 fi
 
-violations=""
-for file in $staged_files; do
-    allowed=0
-    for pattern in $ALLOW_PATTERNS; do
-        [ -z "$pattern" ] && continue
-        case "$file" in
-            $pattern)
-                allowed=1
-                break
-                ;;
-        esac
-    done
-    if [ "$allowed" -eq 1 ]; then
-        continue
-    fi
+violations=$(xargs -0 sh "$0" --check-paths < "$staged_list")
+check_status=$?
 
-    for pattern in $BLACKLIST_PATTERNS; do
-        # 跳过空行
-        [ -z "$pattern" ] && continue
-        # 用 case 做 glob 匹配
-        case "$file" in
-            $pattern)
-                violations="$violations
-  - $file   (匹配黑名单 $pattern)"
-                break
-                ;;
-        esac
-    done
-done
+if [ "$check_status" -ne 0 ] && [ -z "$violations" ]; then
+    echo "xian-commit pre-commit: 敏感路径检查执行失败。" >&2
+    exit 1
+fi
 
 if [ -n "$violations" ]; then
     cat >&2 <<EOF
