@@ -64,7 +64,7 @@ governed/lite 默认仍以 `docs/xian-harness/changes/{change-id}/change.md` 为
 ## 默认交付意图
 
 - 批量实现请求默认携带 publish intent；每个 child 独立完成本地 commit，但不得在 child 循环中运行 full suite 或 push。
-- 所有 child、review Quality Issues 和最终 commit 收口后，由当前主 Agent 作为 integration coordinator，只在最终发布 Git tree 上运行一次 merge-ready，随后自动完成 status 与 push，无需用户二次确认。
+- 所有 child、review Quality Issues 和最终 commit 收口后，普通 batch 由当前主 Agent 直接 push，无需用户二次确认。只有 owner 明确指定 batch integration checkpoint 时，当前主 Agent 才承担 integration coordinator，并在最终不可变 Git tree 上运行一次 merge-ready、消费 status 后 push。
 
 ## 确定性工具
 
@@ -98,13 +98,15 @@ governed/lite 默认仍以 `docs/xian-harness/changes/{change-id}/change.md` 为
 
 - 每个 child change（子变更）仍必须保留自己的 verify/gate/finalize 事实。
 - Build 期间只运行 child-local targeted development tests；源码、contract、phase facts 和 required build review 稳定后，每个 child 默认只运行一次 formal Verify。
+- Owner 对 `absorbed repair`（吸收式修复）提供持续授权：若当前 child 的实现、定向验证或兼容性回归暴露了满足既有目标与 acceptance 所必需的问题，且最小修复保持 child-local、可逆、可独立验证，不新增 CLI、phase、schema、协议概念或用户可见产品能力，也不需要外部凭证、不可逆操作或接受新增风险，则主 Agent 必须直接把修复吸收到当前 child，把修复原因、纳入的 child scope、具体 implementation summary（实现说明）和 verification evidence（验证证据）记入当前 child 后继续执行；不得创建额外 child/change，也不得等待 owner 再授权。
+- `absorbed repair` 不属于 goal scope expansion（目标范围扩张）。改变 goal/child 业务目标、突破构建预算、引入新的产品或协议表面、需要外部凭证或人工风险决策，才属于必须暂停的 `goal expansion`（目标扩张）。
 - 第二次 Gate 仍失败时暂停 batch 并分类根因，不机械刷新 evidence 或重复 formal Verify。
 - 跨 child 的昂贵 external/shared check 放在依赖链末端执行一次；它不能替代任何 child-local failure signal。
 - shared checks 只能补充或复用 fresh facts，不能替代 change-local failure signal（变更本地失败信号）。
-- 任一 child change 的 verify、gate、archive 或 commit 失败时，batch 立即暂停并报告，不得用 shared checks 继续推进。
+- 任一 child change 的 verify、gate、archive 或 commit 失败时，先做 child-local 诊断并完成符合条件的 absorbed repair；只有无法局部修复、第二次 Gate 仍失败或触及 goal expansion 边界时，batch 才暂停并报告。shared checks 不得掩盖或替代该 failure signal。
 - shared checks 的引用必须包含命令、生成时间、目标项目和证据路径；stale（过期）或跨项目 facts 不得复用。
 - goal close 本身不调用 merge-ready；goal completion 不证明 full suite 已运行。
-- `xian-batch` 只有承担 integration coordinator 职责时，才在所有 child、review Quality Issues（审查质量问题）和最终 commit 收口后显式进入 merge-ready boundary。普通 child、goal next、goal close 和 shared checks 都不得触发 full。
+- `xian-batch` 只有被 owner 明确指定为 integration checkpoint 并承担 integration coordinator 职责时，才在所有 child、review Quality Issues（审查质量问题）和最终 commit 收口后显式进入 merge-ready boundary。普通 batch、普通 push、child、goal next、goal close 和 shared checks 都不得触发 full。
 
 ## 排序规则
 
@@ -167,7 +169,7 @@ governed/lite 默认仍以 `docs/xian-harness/changes/{change-id}/change.md` 为
 排序理由：<为什么它在当前位置>
 Acceptance 摘要：<AC 编号或可验证事实摘要>
 验证命令：<change-local verify/check 命令；未知时写“从 change.md / acceptance-criteria.md 读取后确定”>
-风险与暂停点：<scope 扩张、外部凭证、dirty worktree、人工决策、未知状态>
+风险与暂停点：<goal expansion、外部凭证、dirty worktree、人工决策、未知状态；child-local absorbed repair 自动完成>
 ```
 
 ### Execution Loop
@@ -178,21 +180,21 @@ Acceptance 摘要：<AC 编号或可验证事实摘要>
 - 不使用 `git add -A`。
 - 不使用 destructive git 命令。
 - 不覆盖用户未提交内容。
-- 遇到 dirty worktree（当前工作区有未提交变化）、验证失败、scope 扩张、外部凭证、人工决策或未知状态时暂停。
+- 遇到无法归因的 dirty worktree（当前工作区有未提交变化）、无法在当前 child 内修复的验证失败、goal expansion、外部凭证、人工决策或未知状态时暂停。符合上述判据的 absorbed repair 直接完成并继续，不触发暂停。
 
 ### Shared Final Checks
 
 - shared checks 只作为最终确认或 fresh snapshot（新鲜快照）引用，不能替代每个 child 的 verify/gate/finalize。
 - goal close 前必须确认每个 child 有 non-empty acceptance（非空验收）或 accepted-empty rationale（接受空验收理由）。
 - goal close 前必须确认没有 blocking `child-order-split-brain` / `goal-integration-split-brain` 诊断。
-- goal close 只确认 child lifecycle 与顺序事实；integration coordinator 的 merge-ready 是后续独立边界，不进入每个 child 的执行循环。
+- goal close 只确认 child lifecycle 与顺序事实；owner 指定 integration checkpoint 时，integration coordinator 的 merge-ready 是后续独立边界，不进入每个 child 的执行循环。普通 goal close 后直接按默认 publish intent 推送，不要求 receipt。
 
 ### Pause Conditions
 
 - 当前存在 active change。
 - 工作区有未归因 dirty worktree。
-- 任何 child 的 verify、gate、archive、close 或 commit 失败。
-- 用户目标、change scope 或 parked pool 发生变化。
+- 任一 child 的失败经 child-local 诊断后仍无法通过 absorbed repair 修复，或第二次 Gate 仍失败。
+- 用户目标、child 的业务目标或 parked pool 发生变化；仅为满足既有 acceptance 所需的 absorbed repair 不算变化。
 - 需要外部凭证、人工产品决策或接受风险。
 - goal runtime 事实与 change lifecycle evidence 出现顺序或完成状态冲突。
 
@@ -246,7 +248,7 @@ Execution Loop:
 - 每次只激活一个 change。
 - 每个 change 独立完成 activate -> implement -> verify -> check/gate -> close/finalize -> commit。
 - 不使用 git add -A，不使用 destructive git 命令。
-- 发现 dirty worktree、验证失败、scope 扩张、外部凭证、人工决策或未知状态时暂停并报告。
+- 发现无法归因的 dirty worktree、无法在当前 child 内修复的验证失败、goal expansion、外部凭证、人工决策或未知状态时暂停并报告；absorbed repair 自动完成并记入当前 child。
 
 Shared Final Checks:
 - 每个 child 的 verify/gate/closeout 事实独立存在。
@@ -280,7 +282,7 @@ Final Report:
 
 - 必须：只读取 parked change 池、active change、change.md 和必要 project status，不展开 unrelated evidence。
 - 必须：只生成排序和 `/goal` 指令，不在本 skill 内执行 change。
-- 必须：发现 dirty worktree（当前工作区有未提交变化）、scope 扩张或外部凭证需求时暂停并报告。
+- 必须：发现无法归因的 dirty worktree（当前工作区有未提交变化）、goal expansion 或外部凭证需求时暂停并报告；不得把 absorbed repair 升级成人工授权点。
 - 表达层中文优先；保留 `goal runtime`、`active change`、`candidate-only` 等英文术语时紧跟中文释义。
 
 ## 交接规则
@@ -313,6 +315,6 @@ Final Report:
 - 是否按执行前后给出排序，并说明理由？
 - 是否输出了 copy-ready `/goal` 指令？
 - 是否明确 `/goal` 执行时一次只激活一个 change？
-- 是否明确失败、dirty、scope 扩张和人工决策时暂停？
+- 是否明确 absorbed repair 自动完成，而 goal expansion、无法归因 dirty worktree 和人工决策才暂停？
 - 是否没有新增或暗示 `xian-harness batch`、`goal run`、`goal resume`、`batch-state.json` 或 batch-wide gate？
 - 是否没有承诺自动执行 parked changes？

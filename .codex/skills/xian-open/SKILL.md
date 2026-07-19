@@ -31,7 +31,7 @@ open -> verify -> gate -> close
 
 ## 默认交付意图
 
-- 实现、修复、执行或完成具体 change 的请求携带默认 publish intent，授权当前主 Agent 持续执行到 `archive -> commit -> merge-ready -> status -> push`，无需用户二次确认。
+- 实现、修复、执行或完成具体 change 的请求携带默认 publish intent，授权当前主 Agent 持续执行到 `archive -> commit -> push`，无需用户二次确认。只有明确的 integration boundary 才在 commit 后插入 `merge-ready -> status`。
 - 只读、评审、分析、设计、parked，以及用户明确给出的 `no-commit/no-push` 请求不携带 publish intent；不要把它们升级为 Git 交付。
 - publish intent 是 Agent 执行纪律，不写入 change schema 或新 phase。真实阻塞、远端分叉、生产部署、密钥操作和无法归因的 dirty worktree 仍按既有边界暂停。
 
@@ -57,6 +57,8 @@ open -> verify -> gate -> close
    - Project docs-sync warnings or missing project documents.
    - Human decisions required before selecting a route.
 5. Choose one route: resume current change, activate parked change, open a new change, capture a note, route to delivery close, or ask for human decision if active changes conflict.
+   - 当 intent、acceptance 和 verification facts 已明确时，在同一次 `change open` 中传入 `--intent`、至少一个 `--acceptance` 和至少一个 `--verify`，让 `rev-0001` 直接成为真实契约；不要再用 `small-change-note.md` 建立第二事实源。
+   - 结构化 facts 不完整时应让 CLI fail closed，不要退回模板化 open 后手工补治理文件。
 6. Identify the next skill to load and the target project cwd.
 7. 如果 proposal / design / tasks 中列出 future implementation path 或 future batch change name，默认标记为 candidate-only；只有用户明确选择并由 Harness lifecycle CLI 创建后，才可以成为 active workflow。
 8. 不要 edit code in this skill.
@@ -64,7 +66,7 @@ open -> verify -> gate -> close
 ## 工作区隔离策略
 
 - 串行 change 默认 `serial-trunk`：在当前主工作区的本地默认分支持续小粒度 commit，不自动创建 feature branch 或 worktree。
-- 采用 `serial-trunk` 且已安装 xian-commit 时，项目必须使用 `push.mode=explicit-only`；中间 commit 只保存在本地，merge-ready 后才显式 push。
+- 采用 `serial-trunk` 且已安装 xian-commit 时，项目必须使用 `push.mode=explicit-only`；中间 commit 只保存在本地，普通发布在 change-local 验证、Gate、clean tree 和远端安全检查通过后显式 push。只有明确的 integration boundary 才额外要求 merge-ready。
 - 只有真实并行、用户明确要求、无法归因的 dirty worktree 或长时间高风险实验，才使用 `parallel-isolated`：创建 worktree 与本地临时 branch，默认不推远端。
 - worktree 决策是本地执行纪律，不新增 change phase，不新增 tracked worktree registry，也不新增强制治理文档。
 - 创建、删除或 prune worktree 等 worktree 拓扑变化不得触发 verify evidence 失效、full verify 或项目投影 churn（投影抖动）。
@@ -100,6 +102,7 @@ open -> verify -> gate -> close
 - `xian-harness change list --target <target-project> --parked --json`
 - `xian-harness change inspect <change-id> --target <target-project> --json`
 - `xian-harness change open <change-id> --target <target-project> --json`
+- `xian-harness change open <change-id> --target <target-project> --intent <text> --source <text> --acceptance <text> --verify <command> --json`
 - `xian-harness change activate <change-id> --target <target-project> --json`
 - `git status --short --branch`
 - `find <target-project> -maxdepth 2 \( -name package.json -o -name pom.xml -o -name requirements.txt -o -name go.mod -o -name Cargo.toml \)`

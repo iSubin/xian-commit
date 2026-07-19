@@ -36,14 +36,14 @@ Use this skill when the user asks to commit, push, close out, deliver, handle di
 
 ## 默认交付意图
 
-- 实现、修复、执行或完成类 change 携带默认 publish intent。最终 commit clean 且 review / Gate 已通过时，当前主 Agent 自动承担 integration coordinator，不得停下来等待用户再次授权。
-- `push.mode=explicit-only` 只禁止 post-commit hook 自动 push；它不禁止当前主 Agent 依次显式运行 merge-ready、status 和 fast-forward push。
+- 实现、修复、执行或完成类 change 携带默认 publish intent。最终 commit clean 且 review / Gate 已通过时，当前主 Agent 直接完成 fast-forward push，不得停下来等待用户再次授权；普通发布不自动承担 integration coordinator。
+- `push.mode=explicit-only` 只禁止 post-commit hook 自动 push；它不禁止当前主 Agent 显式 push。只有明确的 integration boundary 才在 push 前依次运行 merge-ready 与 status。
 - 只读、评审、分析、设计、parked 或 `no-commit/no-push` 请求不进入默认发布路径。普通中间 commit 仍只保存在本地。
 
 ## Workspace Finish 边界
 
 - 串行 change 默认 `serial-trunk`（串行主线）：在当前主工作区的本地默认分支持续小粒度 commit，不自动创建 feature branch 或 worktree（工作树）。
-- `serial-trunk` 必须使用 `push.mode=explicit-only`；中间 commit 只保存在本地，最终 Git tree 通过 merge-ready 后才显式 push。
+- `serial-trunk` 必须使用 `push.mode=explicit-only`；中间 commit 只保存在本地，普通发布在 change-local 验证、Gate、clean tree 和远端安全检查通过后显式 push。只有明确的 integration boundary 才额外要求 merge-ready。
 - 只有真实并行、用户明确要求、无法归因的 dirty worktree 或长时间高风险实验才使用 `parallel-isolated`（并行隔离），创建 worktree 与本地临时 branch，默认不推远端。
 - worktree 管理是本地执行纪律，不新增 change phase，不新增 tracked worktree registry，也不新增强制治理文档或 commit evidence（提交证据）。
 - 创建、删除或 prune worktree 等 worktree 拓扑变化不得触发 verify evidence 失效、full verify 或项目投影 churn（投影抖动）。
@@ -52,15 +52,16 @@ Use this skill when the user asks to commit, push, close out, deliver, handle di
 
 ## Merge-Ready Consumer 边界
 
-- 只有最终 serial-trunk push / branch merge / integration closeout（串行主线推送 / 分支合并 / 集成收口）时，`xian-commit` 才消费只读状态：
+- 只有 branch merge、Pack rollout、release/deploy candidate、owner 指定的批次 checkpoint 或专用 CI integration job 等明确 integration consumer（集成消费者）收口时，`xian-commit` 才消费只读状态：
 
 ```sh
 xian-harness merge-ready status --target <target-project> --json
 ```
 
-- 普通 commit 不得调用 merge-ready，也不得把中间提交动作升级成 full test；最终 serial-trunk push 必须先消费已有 receipt。
+- 普通 commit 和普通 push 不得调用 merge-ready、消费 receipt 或把 Git 传输动作升级成 full test。
 - 受保护 integration consumer 只接受 `receiptValidity.status=valid` 且 `integrationApplicability.status=applicable` 的结果。
-- 缺少 valid receipt 时只拒绝，不自动运行 full；当本 skill 的当前主 Agent 同时承担 integration coordinator 且存在 publish intent 时，应在调用 status consumer 前显式运行一次 `xian-harness merge-ready`，再消费 status 并 push。
+- 缺少 valid receipt 时只拒绝，不自动运行 full；只有任务明确指定 integration boundary，且本 skill 的当前主 Agent 承担 integration coordinator 时，才应在调用 status consumer 前显式运行一次 `xian-harness merge-ready`，再消费 status 并完成集成动作。
+- CI integration job 对一个 immutable commit SHA 只运行一次 full authority；后续 merge、release 与 deploy stage 消费同一 CI check/artifact，不重复运行 merge-ready。V1 本地 receipt 只限同机消费，不作为跨机器凭证。
 - receipt 生成后不得再修改代码。Git tree 变化时必须重新 commit，并重新运行 merge-ready。
 - local-only（无可用 remote default ref）仓库不得使用当前分支、`HEAD` 或 `HEAD^` 猜测发布基线。使用者必须维护独立的持久化 ref，并在运行与消费状态时传入同一个 `--default-ref <persistent-local-baseline-ref>`；缺失时 Runtime 返回 `MERGE_READY_LOCAL_ONLY_REQUIRES_BASELINE`，不得绕过。
 - 原生 `git push` / `git merge` 不在 Harness Runtime 的普遍强制保护范围内；这里的保证只覆盖消费本 skill / 未来 Web integration action 的受保护路径。
@@ -100,7 +101,7 @@ xian-harness delivery close-plan --target <target-project> --json
 - `git commit`
 - `git push`
 - `xian-harness delivery close-plan --target <target-project> --json`
-- `xian-harness merge-ready status --target <target-project> --json`（仅最终 push / branch merge / integration closeout）
+- `xian-harness merge-ready status --target <target-project> --json`（仅明确的 integration consumer）
 
 ## 必需证据
 
@@ -149,7 +150,7 @@ xian-harness delivery close-plan --target <target-project> --json
 
 ## 交接规则
 
-- 当前请求携带 publish intent 且不存在真实阻塞时，由同一主 Agent 在同一任务中完成 commit、merge-ready、status 与 push；只有 Git delivery 完成后才输出终态结果，不输出等待用户回复“继续”的 handoff。
+- 当前请求携带 publish intent 且不存在真实阻塞时，由同一主 Agent 在同一任务中完成 commit 与 push；明确的 integration boundary 额外执行 merge-ready 与 status。只有 Git delivery 完成后才输出终态结果，不输出等待用户回复“继续”的 handoff。
 - 当前请求不携带 publish intent 时，输出时先说明 commit / push 结果、剩余工作区状态和阻断风险；末尾输出 `下一步建议：<中文下一步>`，空一行后单独输出 `$xian-xxx`，再空一行输出 `直接回复“继续”即可进入该步骤。`；不要在首屏附加“因为...”。
 - 如果 Git delivery 已完成且项目 idle，不要推荐继续提交；推荐下一项真实需求或项目状态查看。
 - 如果 dirty worktree 来源不明，不要输出 `直接回复“继续”即可进入该步骤。`；改为要求用户决定保留、拆分或另开处理。

@@ -6,9 +6,9 @@
     "manifestName": "xian-harness-pack",
     "manifestVersion": 1,
     "fileCount": 128,
-    "contentHash": "53ebdc15c734c6cdad9b152584a53c78bded3d40a06dcf84727b2537fad21f71"
+    "contentHash": "9862dd552a7a9b989f9aeaa122f0fba23ebc59417a0cec0697b063abe793e808"
   },
-  "updatedAt": "2026-07-18T23:08:15+08:00",
+  "updatedAt": "2026-07-19T15:48:50+08:00",
   "files": [
     {
       "path": ".claude/commands/README.md",
@@ -293,9 +293,9 @@
     {
       "path": ".codex/skills/xian-batch/SKILL.md",
       "sourcePath": "base/.codex/skills/xian-batch/SKILL.md",
-      "sourceHash": "e34619c9b311b5c844490552570a8edb1e2aabfbc66b2b5ee0434211ef70bdfd",
-      "targetHash": "e34619c9b311b5c844490552570a8edb1e2aabfbc66b2b5ee0434211ef70bdfd",
-      "installedAt": "2026-07-18T23:08:15+08:00"
+      "sourceHash": "a2867f1be13fdca7772a2d7babbe5cfbed14186a2a014de18015839ec68dbd61",
+      "targetHash": "a2867f1be13fdca7772a2d7babbe5cfbed14186a2a014de18015839ec68dbd61",
+      "installedAt": "2026-07-19T15:48:50+08:00"
     },
     {
       "path": ".codex/skills/xian-build/agents/openai.yaml",
@@ -321,9 +321,9 @@
     {
       "path": ".codex/skills/xian-commit/SKILL.md",
       "sourcePath": "base/.codex/skills/xian-commit/SKILL.md",
-      "sourceHash": "971fe2653d19c08b31b93a5c733e4d9f3a746f28c54f3b0194ba534089ba62ea",
-      "targetHash": "971fe2653d19c08b31b93a5c733e4d9f3a746f28c54f3b0194ba534089ba62ea",
-      "installedAt": "2026-07-18T23:08:15+08:00"
+      "sourceHash": "bc9153093bbc9fab3742b1e59cabdab3dd3f34ea1fa7d5c54153915a29b8d6b6",
+      "targetHash": "bc9153093bbc9fab3742b1e59cabdab3dd3f34ea1fa7d5c54153915a29b8d6b6",
+      "installedAt": "2026-07-19T15:48:50+08:00"
     },
     {
       "path": ".codex/skills/xian-cost/agents/openai.yaml",
@@ -433,9 +433,9 @@
     {
       "path": ".codex/skills/xian-open/SKILL.md",
       "sourcePath": "base/.codex/skills/xian-open/SKILL.md",
-      "sourceHash": "ccaddc4414e5d384520f085655c00e29e6259e5b89be6c67cc44daf5c2747f91",
-      "targetHash": "ccaddc4414e5d384520f085655c00e29e6259e5b89be6c67cc44daf5c2747f91",
-      "installedAt": "2026-07-18T23:08:15+08:00"
+      "sourceHash": "e2dfe4f3677a875fe124ec67ea06c7aed16efd4e7a98a8f6523edf1da6510db6",
+      "targetHash": "e2dfe4f3677a875fe124ec67ea06c7aed16efd4e7a98a8f6523edf1da6510db6",
+      "installedAt": "2026-07-19T15:48:50+08:00"
     },
     {
       "path": ".codex/skills/xian-pack-governance/agents/openai.yaml",
@@ -867,16 +867,16 @@
     {
       "path": "AGENTS.md",
       "sourcePath": "base/AGENTS.md",
-      "sourceHash": "138e29f80281ece8ff37330cac5d1b547b5e0eedcb2bc3fb5866169618796342",
-      "targetHash": "138e29f80281ece8ff37330cac5d1b547b5e0eedcb2bc3fb5866169618796342",
-      "installedAt": "2026-07-18T23:08:15+08:00"
+      "sourceHash": "4d79b5eb78e03668a382c5920aaac8e72cc23b3fd1657cb365712c4432a7a3de",
+      "targetHash": "4d79b5eb78e03668a382c5920aaac8e72cc23b3fd1657cb365712c4432a7a3de",
+      "installedAt": "2026-07-19T15:48:50+08:00"
     },
     {
       "path": "CLAUDE.md",
       "sourcePath": "base/CLAUDE.md",
-      "sourceHash": "e8c67bd51cdd6be133afd92028047d521cc72531fb5eeaa69010e4288974292c",
-      "targetHash": "e8c67bd51cdd6be133afd92028047d521cc72531fb5eeaa69010e4288974292c",
-      "installedAt": "2026-07-18T23:08:15+08:00"
+      "sourceHash": "4ea98daf1b6451689cfcf44aa0609440ff16bb604ed97f1e753dc70c7df89efc",
+      "targetHash": "4ea98daf1b6451689cfcf44aa0609440ff16bb604ed97f1e753dc70c7df89efc",
+      "installedAt": "2026-07-19T15:48:50+08:00"
     },
     {
       "path": "docs/xian-harness/.gitignore",

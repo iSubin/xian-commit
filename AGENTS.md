@@ -25,10 +25,10 @@ Agent 必须遵循：
 
 ## 默认交付意图
 
-- 用户要求实现、修复、执行或完成具体 change 时，采用默认 publish intent（发布意图）：当前主 Agent 应无人值守完成 `archive -> commit -> merge-ready -> status -> push`，无需用户二次确认提交或推送。
-- `push.mode=explicit-only` 只禁止 post-commit hook 自动 push；它不要求人类再次授权。最终 Git tree clean 且 review / Gate 已通过后，由当前主 Agent 显式承担 integration coordinator（集成协调者）职责。
+- 用户要求实现、修复、执行或完成具体 change 时，采用默认 publish intent（发布意图）：当前主 Agent 应无人值守完成 `archive -> commit -> push`，无需用户二次确认提交或推送。
+- `push.mode=explicit-only` 只禁止 post-commit hook 自动 push；它不要求人类再次授权。普通发布在最终 Git tree clean 且 review / Gate 已通过后直接显式 push，不自动升级为 integration coordinator（集成协调者）。
 - 只读、评审、分析、设计、parked，以及用户明确给出的 `no-commit/no-push` 请求不进入默认发布路径；生产部署、密钥操作、远端分支分叉和无法归因的 dirty worktree 仍按各自安全边界暂停。
-- 普通 commit 和每个 batch child 不运行 full suite；单个任务或批量任务只在最终发布 Git tree 上运行一次 merge-ready，然后消费 valid status 并 push。
+- 普通 commit、普通 push、每个 batch child、goal close 和普通 batch 完成都不运行 full suite。只有 branch merge、Pack rollout、release/deploy candidate、owner 指定的批次 checkpoint 或专用 CI integration job 才进入 merge-ready boundary，并在同一不可变 Git tree 上执行一次 full authority。
 
 ## 时间与时区
 
@@ -73,7 +73,7 @@ Agent 必须遵循：
 ## 工作区隔离
 
 - 串行 change 默认 `serial-trunk`（串行主线）：在当前主工作区的本地默认分支持续小粒度 commit，不自动创建 feature branch 或 worktree。
-- 采用 `serial-trunk` 且已安装 xian-commit 时，项目必须使用 `push.mode=explicit-only`；中间 commit 只保存在本地，最终 Git tree 通过 merge-ready 后才显式 push。
+- 采用 `serial-trunk` 且已安装 xian-commit 时，项目必须使用 `push.mode=explicit-only`；中间 commit 只保存在本地，普通发布在 change-local 验证、Gate、clean tree 和远端安全检查通过后显式 push。只有明确的 integration boundary 才额外要求 merge-ready。
 - 只有真实并行、用户明确要求、无法归因的 dirty worktree 或长时间高风险实验，才使用 `parallel-isolated`（并行隔离）：创建 worktree 与本地临时 branch，默认不推远端。
 - 工作区隔离是本地执行纪律，不新增 change phase，不新增 tracked worktree registry，也不新增强制治理文档。
 - 创建、删除或 prune worktree 等 worktree 拓扑变化不得触发 verify evidence 失效、full verify 或项目投影刷新。
