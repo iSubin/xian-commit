@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "changeId": "fix-install-update-safety",
+  "mode": "governed",
+  "tier": "standard",
+  "tierDecision": {
+    "declaredTier": "standard",
+    "effectiveTier": "standard",
+    "riskSignals": [],
+    "forcedUpgrade": null,
+    "downgrade": null
+  },
+  "phase": "archived",
+  "terminalKind": "governed-closed",
+  "activationStatus": "archived",
+  "isolation": "branch",
+  "executionPause": null,
+  "engineeringTrace": null,
+  "sourceRefs": [],
+  "parentRefs": [],
+  "language": {
+    "default": "zh-CN",
+    "protocolLanguage": "en",
+    "businessLanguage": "zh-CN",
+    "codeAnchorLanguage": "en"
+  },
+  "cost": {
+    "tokenUsage": null,
+    "elapsedSeconds": null,
+    "commitCount": 0,
+    "artifactCount": 1
+  },
+  "nextAction": "Governed close completed. Review close.json for final evidence."
+}

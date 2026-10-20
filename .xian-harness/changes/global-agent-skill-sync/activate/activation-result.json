@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync",
+  "activatedAt": "2026-10-20T09:01:01+08:00",
+  "sourceBaseCommit": "2695a22a6133b4c7c497049f6459942d010530a6",
+  "previousActiveChange": null,
+  "previousActivationStatus": "active",
+  "activationStatus": "active",
+  "phase": "open",
+  "statePath": ".xian-harness/changes/global-agent-skill-sync/.change-state.json"
+}

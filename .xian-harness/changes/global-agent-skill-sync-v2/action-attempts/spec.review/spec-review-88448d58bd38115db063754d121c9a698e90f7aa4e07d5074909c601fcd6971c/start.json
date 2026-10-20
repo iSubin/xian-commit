@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync-v2",
+  "action": "spec.review",
+  "actionSubjectIdentity": "sha256:1f33e6f519232d29674bb72041c764b5c92eb4f54e70b3d73f708471890d1f6e",
+  "candidateInputIdentity": null,
+  "attemptId": "spec-review-88448d58bd38115db063754d121c9a698e90f7aa4e07d5074909c601fcd6971c",
+  "fencingToken": 1,
+  "writerGeneration": 1,
+  "leaseToken": "bf7355b2-19fe-4f4c-9cec-b6ce79f268df",
+  "processIncarnationIdentity": "sha256:127f7100d931dc4e800369c6bf12950172f2830602e0a9becb9a5351dc54d65c",
+  "startedAt": "2026-10-20T09:18:30+08:00",
+  "evidencePointer": ".xian-harness/changes/global-agent-skill-sync-v2/spec/review-attempts/spec-review-88448d58bd38115db063754d121c9a698e90f7aa4e07d5074909c601fcd6971c.json",
+  "expectedResultPath": ".xian-harness/changes/global-agent-skill-sync-v2/spec/review-attempts/spec-review-88448d58bd38115db063754d121c9a698e90f7aa4e07d5074909c601fcd6971c.json",
+  "retryPolicyIdentity": "sha256:8921bd2d3d2988c7b88ee3007335f99e0c9af3c87a7d6896a85b7d1dab61c2fb",
+  "retryOfAttemptId": null
+}

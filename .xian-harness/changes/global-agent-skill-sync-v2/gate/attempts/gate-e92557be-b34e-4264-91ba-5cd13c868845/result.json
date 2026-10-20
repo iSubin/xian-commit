@@ -1,0 +1,323 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync-v2",
+  "target": "<target-project>",
+  "status": "pass",
+  "startedAt": "2026-10-20T09:41:09+08:00",
+  "finishedAt": "2026-10-20T09:41:10+08:00",
+  "qualityGateDir": ".xian-harness/changes/global-agent-skill-sync-v2/gate",
+  "gateResultPath": ".xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json",
+  "issuesPath": ".xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json",
+  "reportPath": ".xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json",
+  "inputs": {
+    "verificationStatus": "pass",
+    "staleVerificationEvidence": null,
+    "packStatusPath": null,
+    "packStatusSummary": null,
+    "acceptancePath": ".xian-harness/changes/global-agent-skill-sync-v2/contract-revisions/rev-0004.json",
+    "acceptanceSummary": {
+      "status": "pass",
+      "checked": 0,
+      "unchecked": 5,
+      "checklistTotal": 5,
+      "placeholderCount": 0
+    },
+    "acceptanceCoverageSummary": {
+      "status": "not-applicable",
+      "requiredSmokeScripts": [],
+      "matchedSmokeScripts": [],
+      "missingSmokeScripts": []
+    },
+    "verificationRegistrySummary": {
+      "status": "pass",
+      "sourcePath": ".xian-harness/changes/global-agent-skill-sync-v2/contract-revisions/rev-0004.json",
+      "passedCommands": [
+        "sh scripts/test/run.sh sync-global",
+        "sh scripts/test/run.sh install",
+        "sh -n sync-global.sh",
+        "sh -n install.sh",
+        "rg -n \"sync-global|用户级|user-level\" README.md README_EN.md",
+        "git diff --check"
+      ],
+      "matchedRuleIds": [
+        "VC-001",
+        "VC-002",
+        "VC-003",
+        "VC-004",
+        "VC-005",
+        "VC-006"
+      ],
+      "missingRuleIds": [],
+      "rules": [
+        {
+          "id": "VC-001",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "sh scripts/test/run.sh sync-global",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "rule:VC-001",
+            "command:exact:sh scripts/test/run.sh sync-global"
+          ],
+          "mismatch": null
+        },
+        {
+          "id": "VC-002",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "sh scripts/test/run.sh install",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "rule:VC-002",
+            "command:exact:sh scripts/test/run.sh install"
+          ],
+          "mismatch": null
+        },
+        {
+          "id": "VC-003",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "sh -n sync-global.sh",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "rule:VC-003",
+            "command:exact:sh -n sync-global.sh"
+          ],
+          "mismatch": null
+        },
+        {
+          "id": "VC-004",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "sh -n install.sh",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "rule:VC-004",
+            "command:exact:sh -n install.sh"
+          ],
+          "mismatch": null
+        },
+        {
+          "id": "VC-005",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "rg -n \"sync-global|用户级|user-level\" README.md README_EN.md",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "rule:VC-005",
+            "command:exact:rg -n \"sync-global|用户级|user-level\" README.md README_EN.md"
+          ],
+          "mismatch": null
+        },
+        {
+          "id": "VC-006",
+          "title": null,
+          "kind": "acceptance-rule",
+          "severity": "P1",
+          "status": "pass",
+          "smokeScript": null,
+          "command": "git diff --check",
+          "ownerSkill": "xian-verify",
+          "referenceFiles": [],
+          "matchedEvidence": [
+            "rule:VC-006",
+            "command:exact:git diff --check"
+          ],
+          "mismatch": null
+        }
+      ]
+    },
+    "registryLintSummary": null,
+    "skillRegistrySummary": null,
+    "templateRegistrySummary": null,
+    "standardRegistrySummary": null,
+    "lifecycleContractSummary": null,
+    "agentPairReviewSummary": {
+      "status": "pass",
+      "requiredCount": 2,
+      "acceptedCount": 2,
+      "staleCount": 0,
+      "resolvedCount": 0,
+      "obsoleteCount": 0,
+      "missingCount": 0,
+      "changesRequestedCount": 0,
+      "blockedCount": 0,
+      "failedCount": 0,
+      "invalidCount": 0,
+      "signoffReady": true,
+      "reviews": [
+        {
+          "phase": "spec",
+          "action": "spec.review",
+          "businessContractIdentity": "sha256:37653763adaa569f6e322399fe36b35fbe6ad37b5c9b5b6d7140785c72709d82",
+          "candidateInputIdentity": null,
+          "required": true,
+          "path": ".xian-harness/changes/global-agent-skill-sync-v2/spec/review-attempts/spec-review-8f957e65aea621bfb21f49f280ab89a42595619e63e27ed4ab8b5908bef9e0f9.json",
+          "status": "accepted",
+          "freshnessStatus": "fresh",
+          "evidenceState": "fresh",
+          "summary": "spec.review of global-agent-skill-sync-v2 rev-0004 (all 5 selected domains covered; none inherited; reviewPlan.priorIssues empty). Canonical authority verified: rev-0004.json exists on disk, sha256 matches the evidencePointer (1c9f2208...), and its sections are byte-consistent with the embedded canonicalContract; baseRevision rev-0003 chain is intact; .change-state.json digest matches (38f61608..., unchanged) and the prior spec-review artifact digest matches (92db3592...). Rev-0004 delta is confined to scope: nonGoals (4 entries), options (mirroring design.optionsConsidered verbatim), and impact (2 entries) were materialized; requirement, design, tasks, acceptance, and verificationPlan are otherwise unchanged from the accepted rev-0003 snapshot. Requirements: intent/why/whatChanges remain clear; TASK-001..004 cover the stated change. Boundaries: the four new scope nonGoals (no user-level hooks; no target-repo .xian-commit/.xian-harness writes; unchanged install.sh project-level semantics; no per-product copies) are fully consistent with design rejected options, the approach text, and AC-003; guard markers agree between design and AC-003; scope.changedPaths equals declaredScopePaths exactly. Acceptance: AC-001..005 remain well-formed and symmetric with task acceptanceIds. Verification: all 6 VCs remain bounded, read-safe, and non-recursive into this Change's lifecycle commands; VC-004 syntax-checking out-of-scope install.sh remains a legitimate regression check for AC-003. Historical checklist: all 6 issues from the rev-0003 review were re-evaluated; the empty-nonGoals requirements issue is resolved by rev-0004 (dropped), and the remaining 5 items are re-reported as info with no change in severity; no new issues were introduced by the revision. No actionable defect in the current-phase snapshot; accepted for the current phase only; Harness Gate remains the final delivery authority.",
+          "reviewDiffHash": "sha256:2c5e1df29c68738bb3fc835ec88aac2ad16413c9ef786ef0b1f7fe35bdc1e93f",
+          "currentDiffHash": null,
+          "reviewSnapshotHash": "sha256:3fb06c4fd6cb8ea670d2bf983a85c2b4c1e8944ce80b42a108b2891f43986410",
+          "currentSnapshotHash": "sha256:3fb06c4fd6cb8ea670d2bf983a85c2b4c1e8944ce80b42a108b2891f43986410",
+          "runtimeDiagnostics": {
+            "role": "reviewer",
+            "adapter": "claude-code",
+            "runtime": "claude",
+            "backend": "native",
+            "profile": "native",
+            "model": null,
+            "permissionMode": "read-only",
+            "commandDigest": "sha256:55efc0b8639e24b1797bdfbf934a375bf5c3da9b1c8c7a3ff073e7cb7c0a2efb",
+            "durationMs": 82296,
+            "exitCode": 0,
+            "attemptCount": 1,
+            "fallbackUsed": false,
+            "diagnosticCategory": "accepted",
+            "runtimeLogPath": ".xian-harness/runtime/agent-pair/global-agent-skill-sync-v2/spec-review/1792459327230-66998d37"
+          },
+          "deliveryConfirmation": {
+            "status": "ready",
+            "finalAuthority": "harness-gate",
+            "confirmedAt": "2026-10-20T09:22:07+08:00",
+            "reason": "Agent Pair review accepted the immutable source snapshot; Harness gate remains final authority."
+          }
+        },
+        {
+          "phase": "build",
+          "action": "build.review",
+          "businessContractIdentity": null,
+          "candidateInputIdentity": "sha256:d19a9d57c30e361be4de59d26dbd5cb5380e33797196d627e195bf7cabd2542d",
+          "required": true,
+          "path": ".xian-harness/changes/global-agent-skill-sync-v2/build/review-attempts/build-review-37edc0fa5a73adb39fcf6358dea4323bffb4f4009e37a248d3c33d58f8191c22.json",
+          "status": "accepted",
+          "freshnessStatus": "fresh",
+          "evidenceState": "fresh",
+          "summary": "build.review (delta-rereview) of global-agent-skill-sync-v2. All 5 selected domains covered; changedPaths since the accepted prior build review are README.md, README_EN.md, and sync-global.sh; SKILL.md, scripts/test/run.sh, and tests/test_sync_global.sh are digest-identical to the accepted snapshot and were not rescanned in depth. All six scopedFiles sha256 values match on disk; contract rev-0004 digest is unchanged (1c9f2208...) -- the embedded canonicalContract is null this round but the contract-revision evidence pointer is intact with the accepted digest, so specification authority is preserved; .change-state.json (b1952716..., phase=build) and the prior build-review artifact (fad702b6...) digests match. Delta analysis: (1) sync-global.sh now computes SKILL_COUNT while building SKILL_NAMES and uses it in the install_all and verify_all summary lines, correctly reporting \"1 + 0\" when no sibling xian-* skills exist -- this resolves the prior skill-count info issue; the remainder of the file is byte-identical to the accepted version (preflight all-or-nothing, managed-only uninstall, guard-marker verify, dry-run/--home behavior all unchanged). (2) Both READMEs' hub bullets now say prompts/, references/, hooks/, matching ensure_hub_link targets and resolving the prior documentation naming nit in both languages. git diff --check is clean. Prior-issue re-evaluation: skill-count misreport -- fixed, dropped; README prompt/prompts naming -- fixed, dropped; orphaned managed links for skills removed from the source repo -- still present, re-reported as info; codex-cli-vs-Claude reviewer policy mismatch -- still present, re-reported as info. No new defects were introduced by the delta: the count fix is initialized before use under set -u, alters only display output, and touches no test expectations. Implementation, tests, regression, acceptance, and authority all remain conformant to rev-0004 and AC-001..AC-005 as established in the accepted prior review, with the two documentation/count fixes applied. Accepted for the current phase only; Harness Gate remains the final delivery authority.",
+          "reviewDiffHash": "sha256:d9e332c3860f2d2a7a5a1cf71938cec5cad6b115d42c1bd1677812af149d92a4",
+          "currentDiffHash": null,
+          "reviewSnapshotHash": "sha256:d19a9d57c30e361be4de59d26dbd5cb5380e33797196d627e195bf7cabd2542d",
+          "currentSnapshotHash": "sha256:d19a9d57c30e361be4de59d26dbd5cb5380e33797196d627e195bf7cabd2542d",
+          "runtimeDiagnostics": {
+            "role": "reviewer",
+            "adapter": "claude-code",
+            "runtime": "claude",
+            "backend": "native",
+            "profile": "native",
+            "model": null,
+            "permissionMode": "read-only",
+            "commandDigest": "sha256:3b74a2953566998031c845b131f85f4bf297ff64c3e96070dfa95a020cb5be5f",
+            "durationMs": 87725,
+            "exitCode": 0,
+            "attemptCount": 1,
+            "fallbackUsed": false,
+            "diagnosticCategory": "accepted",
+            "runtimeLogPath": ".xian-harness/runtime/agent-pair/global-agent-skill-sync-v2/build-review/1792460357075-f82ef011"
+          },
+          "deliveryConfirmation": {
+            "status": "ready",
+            "finalAuthority": "harness-gate",
+            "confirmedAt": "2026-10-20T09:39:16+08:00",
+            "reason": "Agent Pair review accepted the immutable source snapshot; Harness gate remains final authority."
+          }
+        }
+      ]
+    },
+    "phaseResultsSummary": {
+      "spec": {
+        "phase": "spec",
+        "path": ".xian-harness/changes/global-agent-skill-sync-v2/spec/spec-result.json",
+        "status": "pass",
+        "summary": "Spec phase facts generated before the spec-accepted lifecycle event.",
+        "generatedAt": "2026-10-20T09:23:32+08:00",
+        "missingFacts": []
+      },
+      "build": {
+        "phase": "build",
+        "path": ".xian-harness/changes/global-agent-skill-sync-v2/build/build-result.json",
+        "status": "pass",
+        "summary": "用户级 skill 同步、全局项目守卫、双语说明与有界测试入口均已实现；36 项 sync-global 断言与 54 项 install 断言通过；build.review 的两项 info 级文案/计数问题已修复。",
+        "generatedAt": "2026-10-20T09:39:14+08:00",
+        "missingFacts": []
+      }
+    },
+    "runnerEnvironmentPath": null,
+    "runnerEnvironment": {
+      "status": "missing",
+      "checkedAt": "not-checked",
+      "checks": []
+    }
+  },
+  "policy": {
+    "adapter": null,
+    "profile": "generic",
+    "version": 1,
+    "path": null
+  },
+  "agents": {
+    "builder": null,
+    "verifier": "xian-verify",
+    "gatekeeper": "xian-gate"
+  },
+  "evidence": [
+    {
+      "kind": "command",
+      "name": "xian-harness verify",
+      "status": "pass",
+      "path": ".xian-harness/changes/global-agent-skill-sync-v2/verify/attempts/attempt-2026-10-20T09-40-51-08-00-1792460452502-27031-7cm8rd2u/result.json"
+    },
+    {
+      "kind": "static",
+      "name": "change acceptance",
+      "status": "pass",
+      "path": ".xian-harness/changes/global-agent-skill-sync-v2/contract-revisions/rev-0004.json"
+    }
+  ],
+  "issues": [],
+  "summary": {
+    "total": 0,
+    "openCount": 0,
+    "blockingOpenCount": 0,
+    "openBySeverity": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "p3": 0
+  },
+  "decision": {
+    "archiveAllowed": true,
+    "reason": "All required sealed Candidate actions and Gate policies passed."
+  },
+  "attemptMetadata": {
+    "candidateInputIdentity": "sha256:d19a9d57c30e361be4de59d26dbd5cb5380e33797196d627e195bf7cabd2542d",
+    "retryCycleIdentity": "sha256:43aaa6514f25d183aabd4c2fe745d3107a4a8662f8130ff5f0ae5322ddbe3fb2",
+    "verifyEvidenceIdentity": "sha256:fc28e35de899336d1bbb90c03cc59e26415f8dfa5ccd1102f0dfefdbe63d9e31",
+    "failureCategory": null
+  }
+}

@@ -1,0 +1,544 @@
+{
+  "version": 1,
+  "mode": "project-status",
+  "target": "<target-project>",
+  "generatedAt": "2026-10-20T09:41:54+08:00",
+  "state": {
+    "initializedAt": "2026-07-18T23:08:14+08:00",
+    "activeChange": null,
+    "changeCount": 1
+  },
+  "summary": {
+    "changeCount": 1,
+    "activeCount": 0,
+    "archivedCount": 0,
+    "blockedCount": 0,
+    "failedCount": 0,
+    "acceptedRiskCount": 0,
+    "releasePendingCount": 0,
+    "missingProjectDocumentCount": 0,
+    "highPriorityTodoCount": 0
+  },
+  "riskLevel": "attention",
+  "changes": [
+    {
+      "changeId": "fix-install-update-safety",
+      "phase": "archived",
+      "terminalKind": "governed-closed",
+      "activationStatus": "archived",
+      "executionPause": null,
+      "gateStatus": null,
+      "releaseStatus": null,
+      "archiveStatus": null,
+      "categories": [
+        "closed"
+      ],
+      "statePath": ".xian-harness/changes/fix-install-update-safety/.change-state.json",
+      "gateResultPath": null,
+      "releaseVerifyPath": null,
+      "archiveResultPath": null
+    }
+  ],
+  "recentTerminalChanges": [
+    {
+      "version": 1,
+      "collectionEpoch": "terminal-history-v1",
+      "changeId": "global-agent-skill-sync-v2",
+      "terminalKind": "audit-archived",
+      "finishedAt": "2026-10-20T09:41:49+08:00",
+      "candidateCount": {
+        "availability": "observed",
+        "value": 3,
+        "provenance": [
+          "current:candidate-seals"
+        ],
+        "reason": null
+      },
+      "actionAttemptCount": {
+        "availability": "observed",
+        "value": 7,
+        "provenance": [
+          "current:action-attempts"
+        ],
+        "reason": null
+      },
+      "outcomeCount": {
+        "availability": "observed",
+        "value": 7,
+        "provenance": [
+          "current:action-attempt-terminals"
+        ],
+        "reason": null
+      },
+      "elapsedSeconds": {
+        "availability": "observed",
+        "value": 1499,
+        "provenance": [
+          "current:work-phase-span"
+        ],
+        "reason": null
+      },
+      "tokenUsage": {
+        "availability": "unavailable",
+        "value": null,
+        "provenance": [],
+        "reason": "exact-runtime-token-cost-unavailable"
+      },
+      "attributableCommitCount": {
+        "availability": "unavailable",
+        "value": null,
+        "provenance": [],
+        "reason": "attributable-commit-count-unavailable"
+      },
+      "candidateInputIdentities": [
+        "sha256:214ae740091d1a7c4fb83eb49dc79b6b9d861556281e2fce90a915148863a0d4",
+        "sha256:87079094fbd22ca9daffe05289cd2b9f2c42980cc7d7f0f1e678d8f51bb899e5",
+        "sha256:d19a9d57c30e361be4de59d26dbd5cb5380e33797196d627e195bf7cabd2542d"
+      ],
+      "outcomes": [
+        {
+          "action": "spec.review",
+          "attemptId": "spec-review-88448d58bd38115db063754d121c9a698e90f7aa4e07d5074909c601fcd6971c",
+          "candidateInputIdentity": null,
+          "fencingToken": 1,
+          "status": "pass",
+          "completion": "normal",
+          "completedAt": "2026-10-20T09:21:52+08:00",
+          "resultStatus": "accepted"
+        },
+        {
+          "action": "spec.review",
+          "attemptId": "spec-review-8f957e65aea621bfb21f49f280ab89a42595619e63e27ed4ab8b5908bef9e0f9",
+          "candidateInputIdentity": null,
+          "fencingToken": 2,
+          "status": "pass",
+          "completion": "normal",
+          "completedAt": "2026-10-20T09:23:30+08:00",
+          "resultStatus": "accepted"
+        },
+        {
+          "action": "build.review",
+          "attemptId": "build-review-c0d5cc473b58ecfd6ad91a2fb28b1c0dd12905c12e7698b92b0bd82dc7adda5a",
+          "candidateInputIdentity": "sha256:87079094fbd22ca9daffe05289cd2b9f2c42980cc7d7f0f1e678d8f51bb899e5",
+          "fencingToken": 1,
+          "status": "interrupted",
+          "completion": "recovered",
+          "completedAt": "2026-10-20T09:35:43+08:00",
+          "resultStatus": null
+        },
+        {
+          "action": "build.review",
+          "attemptId": "build-review-c0d5cc473b58ecfd6ad91a2fb28b1c0dd12905c12e7698b92b0bd82dc7adda5a-environment-retry-1",
+          "candidateInputIdentity": "sha256:87079094fbd22ca9daffe05289cd2b9f2c42980cc7d7f0f1e678d8f51bb899e5",
+          "fencingToken": 2,
+          "status": "pass",
+          "completion": "normal",
+          "completedAt": "2026-10-20T09:38:34+08:00",
+          "resultStatus": "accepted"
+        },
+        {
+          "action": "build.review",
+          "attemptId": "build-review-37edc0fa5a73adb39fcf6358dea4323bffb4f4009e37a248d3c33d58f8191c22",
+          "candidateInputIdentity": "sha256:d19a9d57c30e361be4de59d26dbd5cb5380e33797196d627e195bf7cabd2542d",
+          "fencingToken": 3,
+          "status": "pass",
+          "completion": "normal",
+          "completedAt": "2026-10-20T09:40:45+08:00",
+          "resultStatus": "accepted"
+        },
+        {
+          "action": "formal.verify",
+          "attemptId": "attempt-2026-10-20T09-40-51-08-00-1792460452502-27031-7cm8rd2u",
+          "candidateInputIdentity": "sha256:d19a9d57c30e361be4de59d26dbd5cb5380e33797196d627e195bf7cabd2542d",
+          "fencingToken": 1,
+          "status": "pass",
+          "completion": "normal",
+          "completedAt": "2026-10-20T09:41:03+08:00",
+          "resultStatus": "pass"
+        },
+        {
+          "action": "quality.gate",
+          "attemptId": "gate-e92557be-b34e-4264-91ba-5cd13c868845",
+          "candidateInputIdentity": "sha256:d19a9d57c30e361be4de59d26dbd5cb5380e33797196d627e195bf7cabd2542d",
+          "fencingToken": 1,
+          "status": "pass",
+          "completion": "normal",
+          "completedAt": "2026-10-20T09:41:10+08:00",
+          "resultStatus": "pass"
+        }
+      ]
+    }
+  ],
+  "workSummaries": {
+    "count": 2,
+    "truncated": false,
+    "source": "accepted-contract",
+    "items": [
+      {
+        "changeId": "fix-install-update-safety",
+        "title": null,
+        "availability": "unavailable",
+        "revision": null
+      },
+      {
+        "changeId": "global-agent-skill-sync-v2",
+        "title": "把 xian-commit 及基础 xian-* skills 以用户级软链同步到 Qoder、Codex、Claude Code 的全局 skill 目录，同时保留工程级 hooks/policy 执行边界，并让全局 xian-commit 在缺少项目标记时降级为通用提交规范。",
+        "availability": "observed",
+        "revision": "rev-0004"
+      }
+    ]
+  },
+  "documents": [
+    {
+      "path": "docs/README.md",
+      "role": "Project Documentation Index",
+      "class": "active-entry",
+      "audience": [
+        "human",
+        "agent"
+      ],
+      "sourceOfTruth": [
+        "docs directory",
+        "Project Document Registry"
+      ],
+      "updateCommand": "xian-harness project docs-sync --target <target-project> --fix",
+      "stalePolicy": "Must link the active project entry documents without broken local links.",
+      "communicates": [
+        "documentation entrypoints",
+        "where to read project status, requirements, backlog, and operating rules"
+      ],
+      "nextAction": "Follow the current-status, requirements, todo, or operating-policy links for the task at hand.",
+      "status": "present",
+      "title": "文档索引"
+    },
+    {
+      "path": "docs/项目说明.md",
+      "role": "Project Brief",
+      "class": "canonical-source",
+      "audience": [
+        "human",
+        "agent"
+      ],
+      "sourceOfTruth": [
+        "manual project brief",
+        "product positioning decisions"
+      ],
+      "updateCommand": null,
+      "stalePolicy": "Manual document; update when the project identity, audience, or boundary changes.",
+      "communicates": [
+        "project identity",
+        "target users",
+        "product boundary"
+      ],
+      "nextAction": "Use docs/项目状态.md for current progress and docs/需求文档.md for requirement status.",
+      "status": "present",
+      "title": "项目说明"
+    },
+    {
+      "path": "docs/项目基线.md",
+      "role": "Project Baseline",
+      "class": "generated-surface",
+      "audience": [
+        "human",
+        "agent"
+      ],
+      "sourceOfTruth": [
+        "project marker inspection",
+        ".xian-harness/project-risks.json",
+        ".xian-harness/project-boundaries.json"
+      ],
+      "updateCommand": "xian-harness docs render --doc project-baseline --target <target-project> --fix",
+      "stalePolicy": "Render freshness is checked against baseline facts by docs status.",
+      "communicates": [
+        "project roots",
+        "runtime entrypoints",
+        "profile and baseline risks"
+      ],
+      "nextAction": "Use it to choose the correct cwd, profile, and verification entrypoint before changing code.",
+      "status": "present",
+      "title": "项目基线"
+    },
+    {
+      "path": "docs/项目开发纪律.md",
+      "role": "Project Discipline",
+      "class": "operating-policy",
+      "audience": [
+        "human",
+        "agent"
+      ],
+      "sourceOfTruth": [
+        "AGENTS.md",
+        "docs/xian-harness/current-change-protocol.md",
+        "docs/xian-harness/slimming-product-contract.md"
+      ],
+      "updateCommand": null,
+      "stalePolicy": "Manual operating agreement; update when lifecycle, evidence, or commit rules change.",
+      "communicates": [
+        "work rules",
+        "commit and evidence policy",
+        "canonical facts versus generated views"
+      ],
+      "nextAction": "Follow this document before opening or closing a governed/audit change.",
+      "status": "present",
+      "title": "项目开发纪律"
+    },
+    {
+      "path": "docs/项目情况.md",
+      "role": "Project Situation",
+      "class": "diagnostic-surface",
+      "audience": [
+        "human",
+        "agent"
+      ],
+      "sourceOfTruth": [
+        "Project Situation inspection",
+        ".xian-harness/project-risks.json",
+        ".xian-harness/capability-registry.json"
+      ],
+      "updateCommand": "xian-harness docs render --doc project-situation --target <target-project> --fix",
+      "stalePolicy": "Rendered diagnostic surface; refresh for takeover, diagnosis, or risk review.",
+      "communicates": [
+        "diagnostic snapshot",
+        "capability and risk signals",
+        "active source code signals"
+      ],
+      "nextAction": "Use this for project takeover or diagnosis, not as the daily next-step router.",
+      "status": "present",
+      "title": "项目情况"
+    },
+    {
+      "path": "docs/项目状态.md",
+      "role": "Project Status",
+      "class": "generated-surface",
+      "audience": [
+        "human",
+        "agent"
+      ],
+      "sourceOfTruth": [
+        ".xian-harness/state.yaml",
+        ".xian-harness/project/project-status.json",
+        ".xian-harness/project/next-decision.json"
+      ],
+      "updateCommand": "xian-harness docs render --doc project-status --target <target-project> --fix",
+      "stalePolicy": "Rendered current-progress surface; refresh after lifecycle, backlog, or projection facts change.",
+      "communicates": [
+        "current progress",
+        "active change and blockers",
+        "recommended next action"
+      ],
+      "nextAction": "Follow the Recommended Next Step or run xian-harness continue --target <target-project> --json.",
+      "status": "present",
+      "title": "Project Status"
+    },
+    {
+      "path": "docs/需求文档.md",
+      "role": "Requirement",
+      "class": "canonical-source",
+      "audience": [
+        "human",
+        "agent"
+      ],
+      "sourceOfTruth": [
+        "manual product requirements",
+        "linked change evidence"
+      ],
+      "updateCommand": null,
+      "stalePolicy": "Manual canonical source; update when requirements, status, or acceptance boundaries change.",
+      "communicates": [
+        "requirements",
+        "product boundaries",
+        "linked changes and evidence"
+      ],
+      "nextAction": "Open or link backlog/change items for accepted requirement gaps.",
+      "status": "present",
+      "title": "需求文档"
+    },
+    {
+      "path": "docs/待办清单.md",
+      "role": "Todo List",
+      "class": "generated-surface",
+      "audience": [
+        "human",
+        "agent"
+      ],
+      "sourceOfTruth": [
+        ".xian-harness/backlog/registry.json",
+        ".xian-harness/project/project-status.json",
+        "ProjectWorkQueue"
+      ],
+      "updateCommand": "xian-harness docs render --doc todo-list --target <target-project> --fix",
+      "stalePolicy": "Rendered backlog surface; refresh after todo/backlog import, promote, close, or reject.",
+      "communicates": [
+        "actionable backlog queue",
+        "promoted or parked changes",
+        "next command for each item"
+      ],
+      "nextAction": "Use xian-harness todo/backlog commands; do not edit the generated markdown directly.",
+      "status": "present",
+      "title": "待办清单"
+    }
+  ],
+  "workspace": {
+    "sourceControl": {
+      "type": "git",
+      "present": true,
+      "branch": "master",
+      "upstream": "origin/master",
+      "ahead": null,
+      "behind": null,
+      "gitRoot": ".",
+      "pathspec": ".",
+      "dirtyCount": 0,
+      "untrackedCount": 0
+    },
+    "commitPolicy": {
+      "staging": "path-scoped",
+      "push": "explicit-only",
+      "profileScoped": true,
+      "ruleSource": "AGENTS.md and active profile"
+    },
+    "artifactBoundary": {
+      "status": "none",
+      "rootCount": 0,
+      "fileCount": 0,
+      "bytes": 0,
+      "roots": [],
+      "summary": "No heavy generated artifact root was detected in the current workspace status.",
+      "nextAction": "Continue normal path-scoped delivery attribution."
+    },
+    "riskLevel": "clean",
+    "summary": "Workspace continuity is intentionally normalized in committed project-status surfaces; use xian-harness continue or project status JSON refresh for live dirty/untracked counts."
+  },
+  "situation": {
+    "identity": {
+      "recommendedProfile": "base",
+      "presentMarkers": [],
+      "runtime": []
+    },
+    "entrypoints": [
+      {
+        "path": "package.json",
+        "kind": "node-package",
+        "status": "missing"
+      },
+      {
+        "path": "pom.xml",
+        "kind": "maven",
+        "status": "missing"
+      },
+      {
+        "path": "build.gradle",
+        "kind": "gradle",
+        "status": "missing"
+      },
+      {
+        "path": "settings.gradle",
+        "kind": "gradle-settings",
+        "status": "missing"
+      },
+      {
+        "path": "requirements.txt",
+        "kind": "python-requirements",
+        "status": "missing"
+      },
+      {
+        "path": "pyproject.toml",
+        "kind": "python-project",
+        "status": "missing"
+      },
+      {
+        "path": "go.mod",
+        "kind": "go-module",
+        "status": "missing"
+      },
+      {
+        "path": "Cargo.toml",
+        "kind": "rust-cargo",
+        "status": "missing"
+      },
+      {
+        "path": "docker-compose.yml",
+        "kind": "docker-compose",
+        "status": "missing"
+      },
+      {
+        "path": "Dockerfile",
+        "kind": "dockerfile",
+        "status": "missing"
+      }
+    ],
+    "structure": {
+      "topLevelDirectories": [
+        ".github",
+        "docs",
+        "hooks",
+        "prompts",
+        "references",
+        "scripts",
+        "tests"
+      ],
+      "topLevelFiles": [
+        ".gitignore",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "install.sh",
+        "LICENSE",
+        "policy.example.conf",
+        "README_EN.md",
+        "README.md",
+        "SKILL.md",
+        "sync-global.sh"
+      ]
+    },
+    "baseline": {
+      "path": "docs/项目基线.md",
+      "status": "present",
+      "riskItemCount": 1,
+      "topRisks": [
+        {
+          "severity": "P2",
+          "summary": "Rendered document may drift from canonical facts",
+          "evidence": "redefine-project-status-md-as-render-output",
+          "mitigation": "Run docs status and docs render --fix during archive."
+        }
+      ]
+    },
+    "codeSignals": {
+      "totalCount": 0,
+      "byType": {
+        "TODO": 0,
+        "FIXME": 0
+      },
+      "samples": [],
+      "scannedFileCount": 3,
+      "skippedFileCount": 0
+    },
+    "riskLevel": "attention",
+    "summary": "Project baseline has 1 risk item(s), and code scan found 0 TODO/FIXME signal(s)."
+  },
+  "todos": {
+    "highPriorityCount": 0,
+    "samples": []
+  },
+  "progress": {
+    "currentChild": null,
+    "changeId": null,
+    "coordinationMode": null,
+    "phase": null,
+    "action": null,
+    "activity": "unknown",
+    "startedAt": null,
+    "lastActivityAt": null,
+    "elapsedMs": null,
+    "quietForMs": null,
+    "lastResult": null,
+    "nextBoundary": null,
+    "status": "unknown",
+    "reason": "No canonical current-child activity timestamp is available.",
+    "evidencePointer": null
+  },
+  "paths": {
+    "json": ".xian-harness/project/project-status.json",
+    "markdown": ".xian-harness/project/project-status.md"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync-v2",
+  "phase": "build",
+  "status": "pass",
+  "generatedAt": "2026-10-20T09:39:14+08:00",
+  "summary": "用户级 skill 同步、全局项目守卫、双语说明与有界测试入口均已实现；36 项 sync-global 断言与 54 项 install 断言通过；build.review 的两项 info 级文案/计数问题已修复。",
+  "missingFacts": [],
+  "implementationFacts": {
+    "coveredAcceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005"
+    ],
+    "changedFiles": [
+      "sync-global.sh",
+      "SKILL.md",
+      "scripts/test/run.sh",
+      "tests/test_sync_global.sh",
+      "README.md",
+      "README_EN.md"
+    ],
+    "testMapping": [
+      {
+        "acceptanceId": "AC-001",
+        "command": "sh scripts/test/run.sh sync-global",
+        "evidence": "verify/attempts"
+      },
+      {
+        "acceptanceId": "AC-002",
+        "command": "sh scripts/test/run.sh sync-global",
+        "evidence": "verify/attempts"
+      },
+      {
+        "acceptanceId": "AC-003",
+        "command": "sh scripts/test/run.sh install",
+        "evidence": "verify/attempts"
+      },
+      {
+        "acceptanceId": "AC-004",
+        "command": "sh scripts/test/run.sh sync-global",
+        "evidence": "verify/attempts"
+      },
+      {
+        "acceptanceId": "AC-005",
+        "command": "sh scripts/test/run.sh sync-global",
+        "evidence": "verify/attempts"
+      }
+    ],
+    "residualRisks": [
+      "用户级软链依赖本仓库路径；仓库移动或删除后需重新运行 sync-global.sh，status/verify 会报告漂移。",
+      "状态输出只枚举当前仓库中存在的 xian-* skill；已从仓库移除的旧 skill 软链需人工清理。"
+    ]
+  }
+}

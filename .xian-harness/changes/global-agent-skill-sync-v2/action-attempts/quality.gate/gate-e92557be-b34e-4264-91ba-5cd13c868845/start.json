@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync-v2",
+  "action": "quality.gate",
+  "actionSubjectIdentity": "sha256:43aaa6514f25d183aabd4c2fe745d3107a4a8662f8130ff5f0ae5322ddbe3fb2",
+  "candidateInputIdentity": "sha256:d19a9d57c30e361be4de59d26dbd5cb5380e33797196d627e195bf7cabd2542d",
+  "attemptId": "gate-e92557be-b34e-4264-91ba-5cd13c868845",
+  "fencingToken": 1,
+  "writerGeneration": 1,
+  "leaseToken": "119fd6e7-fede-403e-b5e7-75ae5f926a3f",
+  "processIncarnationIdentity": "sha256:d852ae1240e289823c6d45904fbfc6941c6eaaa99efd8cc4ad0c118d3551c8d1",
+  "startedAt": "2026-10-20T09:41:10+08:00",
+  "evidencePointer": ".xian-harness/changes/global-agent-skill-sync-v2/gate",
+  "expectedResultPath": ".xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json",
+  "retryPolicyIdentity": "quality-gate-recovery.v1",
+  "retryOfAttemptId": null
+}

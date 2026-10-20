@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-20T09:41:54+08:00",
+  "watermarks": [
+    {
+      "surface": "project-status-cache",
+      "status": "idle",
+      "lastEventId": "1e210c44-4c94-4d00-879b-561053356c6e",
+      "lastSourceFingerprint": "0e8570fc328a9ecc6d189d032111b4f32200fa46902542cd9cc76bfb010f86ea",
+      "updatedAt": "2026-10-20T09:41:54+08:00",
+      "reason": "drained by change projection drain"
+    },
+    {
+      "surface": "project-decision",
+      "status": "idle",
+      "lastEventId": "1e210c44-4c94-4d00-879b-561053356c6e",
+      "lastSourceFingerprint": "0e8570fc328a9ecc6d189d032111b4f32200fa46902542cd9cc76bfb010f86ea",
+      "updatedAt": "2026-10-20T09:41:54+08:00",
+      "reason": "drained by change projection drain"
+    }
+  ]
+}

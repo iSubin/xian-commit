@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync-v2",
+  "buildFactsSemanticIdentity": "sha256:bc95616167aef96d1a3d9b3ae6190f0120c10ece8a9239d3a4f1bc59457780f3",
+  "projection": {
+    "changedFiles": [
+      "README.md",
+      "README_EN.md",
+      "SKILL.md",
+      "scripts/test/run.sh",
+      "sync-global.sh",
+      "tests/test_sync_global.sh"
+    ],
+    "coveredAcceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005"
+    ],
+    "testMapping": [
+      {
+        "acceptanceId": "AC-001",
+        "commandFingerprint": "sha256:6a1621d70c0f8c59ccf931dfe7a9e48678161eff5088a5bb44e67f1c315a1733"
+      },
+      {
+        "acceptanceId": "AC-002",
+        "commandFingerprint": "sha256:6a1621d70c0f8c59ccf931dfe7a9e48678161eff5088a5bb44e67f1c315a1733"
+      },
+      {
+        "acceptanceId": "AC-003",
+        "commandFingerprint": "sha256:9c2aa168928a5ed46cbe932da3d69deac7b48b63a26b4c4709a01f7b3ff248ea"
+      },
+      {
+        "acceptanceId": "AC-004",
+        "commandFingerprint": "sha256:6a1621d70c0f8c59ccf931dfe7a9e48678161eff5088a5bb44e67f1c315a1733"
+      },
+      {
+        "acceptanceId": "AC-005",
+        "commandFingerprint": "sha256:6a1621d70c0f8c59ccf931dfe7a9e48678161eff5088a5bb44e67f1c315a1733"
+      }
+    ],
+    "residualRisks": [
+      "状态输出只枚举当前仓库中存在的 xian-* skill；已从仓库移除的旧 skill 软链需人工清理。",
+      "用户级软链依赖本仓库路径；仓库移动或删除后需重新运行 sync-global.sh，status/verify 会报告漂移。"
+    ]
+  }
+}

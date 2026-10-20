@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync-v2",
+  "buildFactsSemanticIdentity": "sha256:664cd981f83b22efce330e072ccf3247d1243bffc213a6f968875512bddcd063",
+  "projection": {
+    "changedFiles": [
+      "README.md",
+      "README_EN.md",
+      "SKILL.md",
+      "scripts/test/run.sh",
+      "sync-global.sh",
+      "tests/test_sync_global.sh"
+    ],
+    "coveredAcceptance": [
+      "AC-001",
+      "AC-002",
+      "AC-003",
+      "AC-004",
+      "AC-005"
+    ],
+    "testMapping": [
+      {
+        "acceptanceId": "AC-001",
+        "commandFingerprint": "sha256:6a1621d70c0f8c59ccf931dfe7a9e48678161eff5088a5bb44e67f1c315a1733"
+      },
+      {
+        "acceptanceId": "AC-002",
+        "commandFingerprint": "sha256:6a1621d70c0f8c59ccf931dfe7a9e48678161eff5088a5bb44e67f1c315a1733"
+      },
+      {
+        "acceptanceId": "AC-003",
+        "commandFingerprint": "sha256:9c2aa168928a5ed46cbe932da3d69deac7b48b63a26b4c4709a01f7b3ff248ea"
+      },
+      {
+        "acceptanceId": "AC-004",
+        "commandFingerprint": "sha256:6a1621d70c0f8c59ccf931dfe7a9e48678161eff5088a5bb44e67f1c315a1733"
+      },
+      {
+        "acceptanceId": "AC-005",
+        "commandFingerprint": "sha256:6a1621d70c0f8c59ccf931dfe7a9e48678161eff5088a5bb44e67f1c315a1733"
+      }
+    ],
+    "residualRisks": [
+      "测试使用隔离 HOME 验证安装布局；真实 HOME 的激活需在 finalize 前显式运行一次 install/verify。",
+      "用户级软链依赖本仓库路径；仓库移动或删除后需重新运行 sync-global.sh，status/verify 会报告漂移。"
+    ]
+  }
+}

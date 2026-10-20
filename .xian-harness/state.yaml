@@ -4,18 +4,25 @@ activeChange: null
 changes:
   - fix-install-update-safety
 lastVerification:
-  changeId: fix-install-update-safety
+  changeId: global-agent-skill-sync-v2
   status: pass
-  verifiedAt: 2026-07-18T23:35:31+08:00
-  evidenceDir: docs/xian-harness/changes/fix-install-update-safety
-  verifyPath: docs/xian-harness/changes/fix-install-update-safety/verify.json
+  verifiedAt: 2026-10-20T09:41:03+08:00
+  evidenceDir: .xian-harness/changes/global-agent-skill-sync-v2/verify/attempts/attempt-2026-10-20T09-40-51-08-00-1792460452502-27031-7cm8rd2u
+  verifyPath: .xian-harness/changes/global-agent-skill-sync-v2/verify/attempts/attempt-2026-10-20T09-40-51-08-00-1792460452502-27031-7cm8rd2u/result.json
 lastQualityGate:
-  changeId: fix-install-update-safety
+  changeId: global-agent-skill-sync-v2
   status: pass
-  checkedAt: 2026-07-18T23:35:40+08:00
-  gateResultPath: docs/xian-harness/changes/fix-install-update-safety/gate.json
-  issuesPath: docs/xian-harness/changes/fix-install-update-safety/gate.json
-  reportPath: docs/xian-harness/changes/fix-install-update-safety/gate.json
+  checkedAt: 2026-10-20T09:41:10+08:00
+  gateResultPath: .xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json
+  issuesPath: .xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json
+  reportPath: .xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json
+lastArchive:
+  changeId: global-agent-skill-sync-v2
+  status: archived
+  archivedAt: 2026-10-20T09:41:49+08:00
+  archiveResultPath: .xian-harness/changes/global-agent-skill-sync-v2/archive/archive-result.json
+  reportPath: null
+  releaseReportPath: .xian-harness/releases/global-agent-skill-sync-v2/release-acceptance.md
 lastPackInstall:
   requestedProfile: base
   effectiveProfile: base

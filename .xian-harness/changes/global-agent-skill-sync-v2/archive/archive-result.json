@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync-v2",
+  "target": "<target-project>",
+  "status": "archived",
+  "archivedAt": "2026-10-20T09:41:49+08:00",
+  "resultCommit": {
+    "resultCommitIdentity": "sha256:3b905f0896f4ef372c4e6a9e4cfcb168ad1e46b41db96f1f0348c2163bcdd9b5",
+    "manifestPath": ".xian-harness/changes/global-agent-skill-sync-v2/result/3b905f0896f4ef372c4e6a9e4cfcb168ad1e46b41db96f1f0348c2163bcdd9b5/manifest.json",
+    "pointerPath": ".xian-harness/changes/global-agent-skill-sync-v2/result-commit.json"
+  },
+  "archiveDir": ".xian-harness/changes/global-agent-skill-sync-v2/archive",
+  "archiveResultPath": ".xian-harness/changes/global-agent-skill-sync-v2/archive/archive-result.json",
+  "reportPath": null,
+  "inputs": {
+    "qualityGateStatus": "pass",
+    "archiveAllowed": true,
+    "registryLintStatus": "not-applicable",
+    "releaseReportPath": ".xian-harness/releases/global-agent-skill-sync-v2/release-acceptance.md",
+    "experienceCandidateCount": 0
+  },
+  "artifacts": {
+    "gateResultPath": ".xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json",
+    "registryLintPath": null,
+    "issuesPath": ".xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json",
+    "qualityGateReportPath": ".xian-harness/changes/global-agent-skill-sync-v2/gate/attempts/gate-e92557be-b34e-4264-91ba-5cd13c868845/result.json",
+    "releaseReportPath": ".xian-harness/releases/global-agent-skill-sync-v2/release-acceptance.md",
+    "changeStatePath": ".xian-harness/changes/global-agent-skill-sync-v2/.change-state.json",
+    "archiveReportPath": null,
+    "experienceCandidatesPath": ".xian-harness/changes/global-agent-skill-sync-v2/archive/experience-candidates.json",
+    "experienceCandidatesReportPath": null
+  },
+  "experienceClosure": {
+    "status": "empty",
+    "candidateCount": 0,
+    "nextSkill": "xian-experience",
+    "routes": [],
+    "candidates": []
+  }
+}

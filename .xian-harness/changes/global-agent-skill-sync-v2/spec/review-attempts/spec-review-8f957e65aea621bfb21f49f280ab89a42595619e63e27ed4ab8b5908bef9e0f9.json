@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync-v2",
+  "action": "spec.review",
+  "phase": "spec",
+  "businessContractIdentity": "sha256:37653763adaa569f6e322399fe36b35fbe6ad37b5c9b5b6d7140785c72709d82",
+  "candidateInputIdentity": null,
+  "status": "accepted",
+  "generatedAt": "2026-10-20T09:22:07+08:00",
+  "diffHash": "sha256:2c5e1df29c68738bb3fc835ec88aac2ad16413c9ef786ef0b1f7fe35bdc1e93f",
+  "snapshotIdentity": {
+    "version": 1,
+    "hash": "sha256:a0dd7f8b5d462f3485cce7b5326d919aa83f5ffe478e76bf1e2f2d98f925090d",
+    "diffHash": "sha256:2c5e1df29c68738bb3fc835ec88aac2ad16413c9ef786ef0b1f7fe35bdc1e93f",
+    "sourceHash": "sha256:07be2311a94455aa8671020095a5938d5b8ef3de7738e854aeae16499390a945",
+    "protocolHash": "sha256:1e8b87f9f793bcf544a02a297a8786e5fc44edae00577942eda13f34f53d66bd",
+    "git": {
+      "baseCommit": null,
+      "headCommit": null
+    },
+    "fileCount": 0
+  },
+  "reviewInputIdentity": "sha256:a5abd843486cdf00a9aee1d047fc83b76a080465a5ef2c446a71df7a4a8a974a",
+  "reviewerFingerprint": "sha256:8fa393109a010fa9af0922f3b0c6071f7b5e8adc9fac08235ac09d692ca0a7cc",
+  "policyFingerprint": "sha256:612d44944c2f9a59b7e4b26b90304fba330946687c5541c980875b0fb9b8cea8",
+  "reviewer": {
+    "runtime": "claude-agent-sdk",
+    "backend": "claude",
+    "permissionMode": "read-only"
+  },
+  "policy": {
+    "mode": "required",
+    "required": true,
+    "source": "change"
+  },
+  "summary": "spec.review of global-agent-skill-sync-v2 rev-0004 (all 5 selected domains covered; none inherited; reviewPlan.priorIssues empty). Canonical authority verified: rev-0004.json exists on disk, sha256 matches the evidencePointer (1c9f2208...), and its sections are byte-consistent with the embedded canonicalContract; baseRevision rev-0003 chain is intact; .change-state.json digest matches (38f61608..., unchanged) and the prior spec-review artifact digest matches (92db3592...). Rev-0004 delta is confined to scope: nonGoals (4 entries), options (mirroring design.optionsConsidered verbatim), and impact (2 entries) were materialized; requirement, design, tasks, acceptance, and verificationPlan are otherwise unchanged from the accepted rev-0003 snapshot. Requirements: intent/why/whatChanges remain clear; TASK-001..004 cover the stated change. Boundaries: the four new scope nonGoals (no user-level hooks; no target-repo .xian-commit/.xian-harness writes; unchanged install.sh project-level semantics; no per-product copies) are fully consistent with design rejected options, the approach text, and AC-003; guard markers agree between design and AC-003; scope.changedPaths equals declaredScopePaths exactly. Acceptance: AC-001..005 remain well-formed and symmetric with task acceptanceIds. Verification: all 6 VCs remain bounded, read-safe, and non-recursive into this Change's lifecycle commands; VC-004 syntax-checking out-of-scope install.sh remains a legitimate regression check for AC-003. Historical checklist: all 6 issues from the rev-0003 review were re-evaluated; the empty-nonGoals requirements issue is resolved by rev-0004 (dropped), and the remaining 5 items are re-reported as info with no change in severity; no new issues were introduced by the revision. No actionable defect in the current-phase snapshot; accepted for the current phase only; Harness Gate remains the final delivery authority.",
+  "issues": [
+    {
+      "id": "sha256:03c2ece5acf08c71f849a2798cbeb8adfccb1e3774914a0d819254183ea0f00f",
+      "domain": "verification",
+      "severity": "info",
+      "title": "Uniform AC-to-VC coverage mapping cannot discriminate evidence per acceptance criterion",
+      "path": ".xian-harness/changes/global-agent-skill-sync-v2/contract-revisions/rev-0004.json",
+      "recommendation": "Carried over from the rev-0003 review, still present in rev-0004. In a future contract revision, consider narrowing each VC's covers list (e.g., AC-001/AC-002/AC-003 -> VC-001/VC-002 plus VC-003; AC-004 -> VC-005; AC-005 -> VC-006 as the meta-consistency check) so verify attempts map failures to the right acceptance criteria. The blanket symmetry remains a documented, intentional choice per the rev-0003 revision reason."
+    },
+    {
+      "id": "sha256:0ad04115f351558b709f95e80a6a7b0b7267021a93367cbc48f74cf831f6aa63",
+      "domain": "acceptance",
+      "severity": "info",
+      "title": "AC-003 SKILL.md guard lacks a specified dedicated content assertion",
+      "path": ".xian-harness/changes/global-agent-skill-sync-v2/contract-revisions/rev-0004.json",
+      "recommendation": "Carried over from the rev-0003 review, unchanged in rev-0004. When detailing TASK-003 or the next contract revision, state explicitly that tests/test_sync_global.sh (or a content check) asserts the guard/degradation language in SKILL.md (e.g., presence of the .xian-commit/config / .xian-harness/ detection and the no-hook-claim wording), so AC-003 has dedicated evidence rather than only inheriting the general test entry."
+    },
+    {
+      "id": "sha256:2349c2dae6dcdad552b5d97637b38598b999421bcf0621f1ee970cc3a2530e23",
+      "domain": "authority",
+      "severity": "info",
+      "title": "Bundle reviewer policy pins codex-cli while the change rationale and both spec-review executions use a Claude reviewer",
+      "path": null,
+      "recommendation": "Carried over from the rev-0003 review; bundle policy is unchanged and this review is again executed by a Claude runtime. Align the harness reviewer policy with the intended reviewer runtime for this change so the later build review does not stall on the same backend-access problem that caused the predecessor change to be abandoned. Configuration alignment note only; not a defect in this contract snapshot."
+    },
+    {
+      "id": "sha256:5012a9a72baa34faa718b3a2150c0ee979944f9f79b2d4abc21380f0979d6407",
+      "domain": "authority",
+      "severity": "info",
+      "title": "Change state phase/nextAction still lag the captured rev-0004 contract facts",
+      "path": ".xian-harness/changes/global-agent-skill-sync-v2/.change-state.json",
+      "recommendation": "State file digest is unchanged since the rev-0003 review (38f61608...), so the observation still holds, but it remains harness-managed lifecycle bookkeeping expected to refresh at the next phase transition; no product action required for this spec review."
+    },
+    {
+      "id": "sha256:6e5726ecf3eecdeb08f7c2e8f45fca8b38606e18dba22d8201dd2f3793838eae",
+      "domain": "boundaries",
+      "severity": "info",
+      "title": "Ownership marker .xian-global-managed placement and discovery rule unspecified",
+      "path": ".xian-harness/changes/global-agent-skill-sync-v2/contract-revisions/rev-0004.json",
+      "recommendation": "Carried over from the rev-0003 review, design text unchanged. Specify in design where .xian-global-managed resides (e.g., a marker file inside the ~/.agents/skills hub) and how uninstall uses it to enumerate owned product-dir links, so uninstall semantics are unambiguous for implementation."
+    }
+  ],
+  "reviewPlan": {
+    "mode": "full-snapshot",
+    "requiredDomains": [
+      "requirements",
+      "boundaries",
+      "acceptance",
+      "verification",
+      "authority"
+    ],
+    "selectedDomains": [
+      "requirements",
+      "boundaries",
+      "acceptance",
+      "verification",
+      "authority"
+    ],
+    "inheritedDomains": [],
+    "changedPaths": [],
+    "priorIssues": []
+  },
+  "reviewCoverage": {
+    "mode": "full-snapshot",
+    "requiredDomains": [
+      "requirements",
+      "boundaries",
+      "acceptance",
+      "verification",
+      "authority"
+    ],
+    "selectedDomains": [
+      "requirements",
+      "boundaries",
+      "acceptance",
+      "verification",
+      "authority"
+    ],
+    "coveredDomains": [
+      "acceptance",
+      "authority",
+      "boundaries",
+      "requirements",
+      "verification"
+    ],
+    "unavailableDomains": [],
+    "inheritedDomains": [],
+    "changedPaths": [],
+    "complete": true
+  },
+  "reviewInputFiles": [],
+  "reviewInputContractSections": {
+    "requirementHash": "sha256:e76d21870f373398616702a0d63b78c2cf97a1810bd7837be72f7a6cf4c50a3c",
+    "scopeHash": "sha256:fff0da09bcadf850c279356aa80a577ac8b482490801b4eb5a9db01b92d6103f",
+    "designHash": "sha256:bfc8c959a05a90696364e8ca244914513cdc8b6b4797b39a599137f2ff3d7d3e",
+    "acceptanceHash": "sha256:6657410c4b27f80a6c00c99b010ded51c9dc25509be004a2889266e3cbfc600c",
+    "verificationPlanHash": "sha256:a867107ab114efb3d352323e2177eb488bc9bc0319024faeabd54ee30785b42c",
+    "sourceDeltaHash": "sha256:b732887c9a29b53874146beb0bb13dc89f5006f374358942b01ab2aaac3f337e",
+    "tasksHash": "sha256:e306698858d8d44163c8c45e1dc84b77b836b6b039cc0a74fbe9e64e9f28f686",
+    "runtimePlanHash": "sha256:205f2a0fb49915bc649abea994569bfada2f30961e3029087c6fb75d3a837828",
+    "reviewPolicyHash": "sha256:e595f5e437775312cb66921d1a77c1fbddb8fb60135c564bdaa18f25891c1c33",
+    "renderHash": "sha256:8c54b46c2b008ff685429ac6e57df4757917bff594855c71811bd037361f1f57"
+  },
+  "redactionApplied": false,
+  "refusedActions": [],
+  "runtimeDiagnostics": {
+    "role": "reviewer",
+    "adapter": "claude-code",
+    "runtime": "claude",
+    "backend": "native",
+    "profile": "native",
+    "model": null,
+    "permissionMode": "read-only",
+    "commandDigest": "sha256:55efc0b8639e24b1797bdfbf934a375bf5c3da9b1c8c7a3ff073e7cb7c0a2efb",
+    "durationMs": 82296,
+    "exitCode": 0,
+    "attemptCount": 1,
+    "fallbackUsed": false,
+    "diagnosticCategory": "accepted",
+    "runtimeLogPath": ".xian-harness/runtime/agent-pair/global-agent-skill-sync-v2/spec-review/1792459327230-66998d37"
+  },
+  "deliveryConfirmation": {
+    "status": "ready",
+    "finalAuthority": "harness-gate",
+    "confirmedAt": "2026-10-20T09:22:07+08:00",
+    "reason": "Agent Pair review accepted the immutable source snapshot; Harness gate remains final authority."
+  },
+  "phaseAcceptArtifactPath": null,
+  "failure": null
+}

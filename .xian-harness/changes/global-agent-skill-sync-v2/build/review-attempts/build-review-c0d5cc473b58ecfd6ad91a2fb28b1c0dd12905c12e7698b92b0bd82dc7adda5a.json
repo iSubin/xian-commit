@@ -1,0 +1,189 @@
+{
+  "version": 1,
+  "changeId": "global-agent-skill-sync-v2",
+  "action": "build.review",
+  "phase": "build",
+  "businessContractIdentity": null,
+  "candidateInputIdentity": "sha256:87079094fbd22ca9daffe05289cd2b9f2c42980cc7d7f0f1e678d8f51bb899e5",
+  "status": "accepted",
+  "generatedAt": "2026-10-20T09:35:45+08:00",
+  "diffHash": "sha256:f307a83b9fa703ed38213870580d0c0a3cf5bdbb2f25437438c95f8188551583",
+  "snapshotIdentity": {
+    "version": 1,
+    "hash": "sha256:188cfd44afe37ce436f10948f7911df01a8b07a3fbbd8bf428c4306c6f7e6383",
+    "diffHash": "sha256:f307a83b9fa703ed38213870580d0c0a3cf5bdbb2f25437438c95f8188551583",
+    "sourceHash": "sha256:738594e7e6643b773751894d4702fe19ea4074918fde5044026413c8caed8e62",
+    "protocolHash": "sha256:8d2d8dc3213835de557d7f69fa73e2c84a51a2860984cb32c66745c27b1713ff",
+    "git": {
+      "baseCommit": "2695a22a6133b4c7c497049f6459942d010530a6",
+      "headCommit": "2695a22a6133b4c7c497049f6459942d010530a6"
+    },
+    "fileCount": 6
+  },
+  "reviewInputIdentity": "sha256:37b86504529935d147ac02ed423dac2fa631f694e87a72da1a4d2284dd7574a0",
+  "reviewerFingerprint": "sha256:20b0b57bd33b7293b02f8ab763dc8589bf2ad458a10ae1170776d0ea77ef5e1a",
+  "policyFingerprint": "sha256:92527733fd6298fe8673d8a916e5275b07785f80cb88ef06384021cdaf92e5cd",
+  "reviewer": {
+    "runtime": "claude-agent-sdk",
+    "backend": "claude",
+    "permissionMode": "read-only"
+  },
+  "policy": {
+    "mode": "required",
+    "required": true,
+    "source": "change"
+  },
+  "summary": "build.review of global-agent-skill-sync-v2 (all 5 selected domains covered; no inherited domains; no priorIssues; no prior build-review artifact). Inspected the cumulative trunk snapshot via git diff 2695a22 -- <declaredScopePaths> (README.md/README_EN.md/SKILL.md modified; sync-global.sh, scripts/test/run.sh, tests/test_sync_global.sh new/untracked) plus full reads of all six scoped files; every scopedFiles sha256 matches on disk; contract rev-0004 digest unchanged (1c9f2208...); .change-state.json digest matches (b1952716...) and now shows phase=build, coherent with this action; git diff --check is clean. Implementation: sync-global.sh implements the design faithfully -- managed hub at ~/.agents/skills (xian-commit dir with .xian-global-managed marker and six links to repo SKILL.md/install.sh/prompts/references/hooks/policy.example.conf; other xian-* skills as directory symlinks), product entries in ~/.qoder-cn/.codex/.claude skills pointing relatively to the hub, install/status/verify/uninstall with --dry-run/--home, all-or-nothing conflict preflight (exit before any write), managed-only uninstall via raw-target-or-resolved match with foreign entities kept and reported, idempotent re-runs, symlink resolution with depth cap, and no user-level hooks/policy or target-repo writes. SKILL.md adds the project guard (<!-- xian-commit:global-guard --> marker, .xian-commit/config or .xian-harness/ detection, generic-commit degradation with no hook claims, install.sh pointer) and amends principle 3 consistently; verify_all greps the marker. Tests: scripts/test/run.sh is a bounded entry delegating to tests/test_sync_global.sh and the pre-existing tests/test_install.sh; the new suite covers guard/README content assertions, isolated-HOME install across all three product dirs, non-xian skills untouched, status/verify output, idempotent second install, dry-run writing nothing, foreign-directory fail-closed install with no partial hub and preserved foreign content, uninstall preserving foreign dirs while removing managed product and hub links, and --home isolation -- this also resolves the prior spec-review follow-ups (dedicated guard assertion now tested; marker placement now concrete). Regression: install.sh, hooks, policy, tests/lib.sh and test_install.sh are unmodified; SKILL.md changes are additive and preserve the full project-level workflow; all prior 'project-level only' README claims were updated with no stale contradictions. Acceptance: AC-001/002/03 verified against code+tests, AC-04 bilingual README sections cover install, target dirs, guard, drift, and uninstall, AC-05 task/view consistency holds. Authority: VCs remain bounded and non-recursive into lifecycle commands; absent verify/Gate evidence is expected before this phase and not held against the snapshot. Four info-level notes recorded (README 'prompt' vs prompts/ naming nit, empty-skill-list count edge, orphaned-link enumeration gap, codex-cli-vs-Claude reviewer policy mismatch carried from spec reviews). No actionable defect; accepted for the current phase only; Harness Gate remains the final delivery authority.",
+  "issues": [
+    {
+      "id": "sha256:5ca0aa4b476083fd0eeda13399c49359d12ca7b620027e49dc18476f16179246",
+      "domain": "implementation",
+      "severity": "info",
+      "title": "Skill-count summary misreports when no sibling xian-* skills exist",
+      "path": "sync-global.sh",
+      "recommendation": "In install_all and verify_all, `printf '%s\\n' $SKILL_NAMES | wc -l` yields 1 even when SKILL_NAMES is empty, so the summary would print \"skills: 1 + 1\" when no sibling xian-* skills exist in .codex/skills. Display-only edge case (this repo has xian-open/xian-spec); consider guarding the empty case or computing the count while building SKILL_NAMES."
+    },
+    {
+      "id": "sha256:6986e3c8da095a18a45b932d165f346cf6ac5fb6ec53eaa4c0d8eaef9c823dc1",
+      "domain": "acceptance",
+      "severity": "info",
+      "title": "README hub bullet says `prompt` but implementation links the `prompts` directory",
+      "path": "README.md",
+      "recommendation": "Minor documentation accuracy nit: the hub bullet in README.md and README_EN.md lists the linked artifact as `prompt` (singular), while sync-global.sh actually links the `prompts` directory (ensure_hub_link \"$XIAN_COMMIT_HUB/prompts\"). Correct the wording to `prompts/` in both READMEs so AC-004's directory description matches the implementation; purely cosmetic, no behavior impact."
+    },
+    {
+      "id": "sha256:72c50b3c0a37aded9c6b683e5c0325037b4083982b13ef7f8e54ecc912ffcef3",
+      "domain": "implementation",
+      "severity": "info",
+      "title": "Orphaned managed links for skills removed from the source repo are not enumerated by status/uninstall",
+      "path": "sync-global.sh",
+      "recommendation": "SKILL_NAMES is derived from the current repo listing (.codex/skills/xian-*), so a link created by an earlier sync for a skill later removed from the repo is no longer enumerated: uninstall will not remove it and status/verify will not report it. Not an AC violation (drift is documented as exposed via status/verify for tracked skills), but recording the managed skill list in the .xian-global-managed marker at install time and having status/uninstall read it would close this lifecycle gap."
+    },
+    {
+      "id": "sha256:94ae8ceb52ed5828097b11c07c9ad3165db8d417fa7547a0ee4064edff35db43",
+      "domain": "authority",
+      "severity": "info",
+      "title": "Bundle reviewer policy pins codex-cli while this change's reviews execute on a Claude reviewer",
+      "path": null,
+      "recommendation": "Carried over from both spec reviews: bundle policy pins specReview/buildReview reviewer runtime to codex-cli, while the change rationale states a Claude-reviewer restart and both spec reviews plus this build review executed on a Claude runtime. Align the harness reviewer policy with the intended runtime so future review dispatches do not depend on fallback. Configuration alignment note only; not a defect in this build snapshot."
+    }
+  ],
+  "reviewPlan": {
+    "mode": "full-snapshot",
+    "requiredDomains": [
+      "implementation",
+      "tests",
+      "regression",
+      "acceptance",
+      "authority"
+    ],
+    "selectedDomains": [
+      "implementation",
+      "tests",
+      "regression",
+      "acceptance",
+      "authority"
+    ],
+    "inheritedDomains": [],
+    "changedPaths": [],
+    "priorIssues": []
+  },
+  "reviewCoverage": {
+    "mode": "full-snapshot",
+    "requiredDomains": [
+      "implementation",
+      "tests",
+      "regression",
+      "acceptance",
+      "authority"
+    ],
+    "selectedDomains": [
+      "implementation",
+      "tests",
+      "regression",
+      "acceptance",
+      "authority"
+    ],
+    "coveredDomains": [
+      "acceptance",
+      "authority",
+      "implementation",
+      "regression",
+      "tests"
+    ],
+    "unavailableDomains": [],
+    "inheritedDomains": [],
+    "changedPaths": [],
+    "complete": true
+  },
+  "reviewInputFiles": [
+    {
+      "path": "README_EN.md",
+      "state": "present",
+      "sha256": "53acfafd84d5c8b79bb4c7bc3993586f35c9c340b90641e611313974782359a7"
+    },
+    {
+      "path": "README.md",
+      "state": "present",
+      "sha256": "945952bd9b43c91b6eec31a17f0c0b0e1ce7119caec04b49e827c6d165b43233"
+    },
+    {
+      "path": "scripts/test/run.sh",
+      "state": "present",
+      "sha256": "5c5f3dd84b2a6360e2af708ec9d991ea17445f1eea3ab56671f6b12d0d620c00"
+    },
+    {
+      "path": "SKILL.md",
+      "state": "present",
+      "sha256": "bd5161fe31197291599b616c841f9e883cc02f13e371cdd22a31927e1dd663c6"
+    },
+    {
+      "path": "sync-global.sh",
+      "state": "present",
+      "sha256": "983db6455d66f0abbeac4371b97156d98fe9fa93740acbb3a69fb27cce841436"
+    },
+    {
+      "path": "tests/test_sync_global.sh",
+      "state": "present",
+      "sha256": "5e7ae5a232e8b0b2d35f98e67c8b5cfdb468573dd6ccfc0c74543fff5cbae309"
+    }
+  ],
+  "reviewInputContractSections": {
+    "requirementHash": "sha256:e76d21870f373398616702a0d63b78c2cf97a1810bd7837be72f7a6cf4c50a3c",
+    "scopeHash": "sha256:fff0da09bcadf850c279356aa80a577ac8b482490801b4eb5a9db01b92d6103f",
+    "designHash": "sha256:bfc8c959a05a90696364e8ca244914513cdc8b6b4797b39a599137f2ff3d7d3e",
+    "acceptanceHash": "sha256:6657410c4b27f80a6c00c99b010ded51c9dc25509be004a2889266e3cbfc600c",
+    "verificationPlanHash": "sha256:a867107ab114efb3d352323e2177eb488bc9bc0319024faeabd54ee30785b42c",
+    "sourceDeltaHash": "sha256:b732887c9a29b53874146beb0bb13dc89f5006f374358942b01ab2aaac3f337e",
+    "tasksHash": "sha256:e306698858d8d44163c8c45e1dc84b77b836b6b039cc0a74fbe9e64e9f28f686",
+    "runtimePlanHash": "sha256:205f2a0fb49915bc649abea994569bfada2f30961e3029087c6fb75d3a837828",
+    "reviewPolicyHash": "sha256:e595f5e437775312cb66921d1a77c1fbddb8fb60135c564bdaa18f25891c1c33",
+    "renderHash": "sha256:8c54b46c2b008ff685429ac6e57df4757917bff594855c71811bd037361f1f57"
+  },
+  "redactionApplied": false,
+  "refusedActions": [],
+  "runtimeDiagnostics": {
+    "role": "reviewer",
+    "adapter": "claude-code",
+    "runtime": "claude",
+    "backend": "native",
+    "profile": "native",
+    "model": null,
+    "permissionMode": "read-only",
+    "commandDigest": "sha256:2b5215cf59d92ce9c0071c8e33a3a3ea74e0e3c452f49c7d7021a63d40250bbc",
+    "durationMs": 167434,
+    "exitCode": 0,
+    "attemptCount": 1,
+    "fallbackUsed": false,
+    "diagnosticCategory": "accepted",
+    "runtimeLogPath": ".xian-harness/runtime/agent-pair/global-agent-skill-sync-v2/build-review/1792460146121-2bac18c7"
+  },
+  "deliveryConfirmation": {
+    "status": "ready",
+    "finalAuthority": "harness-gate",
+    "confirmedAt": "2026-10-20T09:35:45+08:00",
+    "reason": "Agent Pair review accepted the immutable source snapshot; Harness gate remains final authority."
+  },
+  "phaseAcceptArtifactPath": null,
+  "failure": null
+}

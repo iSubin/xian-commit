@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "scope": "change-result-payloads",
+  "changeId": "global-agent-skill-sync-v2",
+  "payloadManifestIdentity": "sha256:07c39cf1ce4bb3e13c322293d80d59d6192d879a4e3ef507c3d3fa3a31e30d2d",
+  "entries": [
+    {
+      "logicalPath": ".xian-harness/changes/global-agent-skill-sync-v2/verify/attempts/attempt-2026-10-20T09-40-51-08-00-1792460452502-27031-7cm8rd2u/result.json",
+      "rawBytesDigest": "sha256:a5fcae3eb99f06f964c34e26ad1f3cf0300ecb1f3857955135bf3ef1a1046927",
+      "rawBytes": 38645,
+      "codec": "gzip",
+      "blobPath": ".xian-harness/changes/global-agent-skill-sync-v2/result-payloads/blobs/sha256/c3921769047ed30acdc34a771d6e505d69ab299d066ed9484d70ec446817a887.json.gz",
+      "blobBytesDigest": "sha256:c3921769047ed30acdc34a771d6e505d69ab299d066ed9484d70ec446817a887",
+      "blobBytes": 5920,
+      "availability": {
+        "storage": "tracked-git",
+        "required": true
+      }
+    }
+  ]
+}
