@@ -7,11 +7,22 @@ description: AI coding agent 的 Git 交付治理入口。当用户要求提交�
 
 xian-commit 是面向 code agent 的 Git 交付治理资产集合。你(AI agent)处理 commit / push / dirty worktree（当前工作区有未提交变化） / commit message / hook 拦截时,按下面工作流走。
 
+<!-- xian-commit:global-guard -->
+## 项目守卫
+
+本 skill 可能来自工程级安装,也可能来自用户级全局同步。开始前先确认当前仓库是否已安装 xian-commit 工程资产:
+
+- 存在 `.xian-commit/config` 或 `.xian-harness/`:当前仓库已启用 xian-commit,按本文完整流程执行;hooks 和 policy 以当前仓库为准。
+- 两者都不存在:当前仓库未安装 xian-commit。只应用通用提交纪律(细粒度 commit、中文标题与正文、禁止 `--no-verify`、未经授权不 push),不要读取不存在的 `.xian-commit/config`,不要声称 Git hooks 已生效。提示用户先使用 xian-commit 源仓库的 `install.sh` 完成工程级安装;若已做用户级同步,可直接运行 `sh ~/.agents/skills/xian-commit/install.sh`。
+- 不在 Git 仓库内:不要使用本 skill 执行 Git 交付。
+
+用户级全局同步只提供 skill 发现,不会安装 hooks、policy 或项目级状态。
+
 ## 核心原则
 
 1. **细粒度 commit**:不要把一堆无关改动塞进一个 commit。按逻辑单元拆分,一个 commit 做一件事。
 2. **commit message 由你写**:你看 diff,自己想 type / 标题 / 正文。**不要让工具替你想**。
-3. **形式兜底靠 hook**:`hooks/pre-commit` 和 `hooks/commit-msg` 校验形式。你写错了它们会拦,但你不能依赖它们替你思考。
+3. **形式兜底靠 hook(仅限已安装工程资产)**:`hooks/pre-commit` 和 `hooks/commit-msg` 校验形式。你写错了它们会拦,但你不能依赖它们替你思考。若当前仓库未安装 xian-commit,不要声称 hook 会拦截。
 4. **普通 push 由 policy 控制**:默认配置为 `push.mode=auto-safe`,安全条件全部满足时可执行普通 push;配置缺失或 `explicit-only` 时需要用户明确说"push"或"推送"。commit 是本地动作,push 是对外发布。
 5. **不绕过 hook**:永远不要 `git commit --no-verify`。hook 误拦修 hook,不绕过。
 6. **无状态优先**:只从当前 git 事实、hook 输出、policy/config 和本轮明确授权判断,不要记忆"上次授权"。
