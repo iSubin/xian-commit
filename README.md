@@ -10,7 +10,7 @@
 
 > **安装范围：工程级执行 + 可选用户级发现。**
 > `install.sh` 只把 Skill、policy 和 hooks 写入当前目标 Git 仓库，不会直接写入 `~/.codex/skills`、`~/.claude/skills` 或 `~/.qoder-cn/skills`。每个需要 hooks/policy 的工程仍必须单独安装。
-> `sync-global.sh` 是可选步骤：它只把 `xian-*` skills 以软链注册到用户级目录，让 Qoder、Codex、Claude Code 在所有工程中发现同一套 skill；它不安装 hooks 或 policy，也不替代工程级安装。
+> `sync-global.sh` 是可选步骤：它只把本产品的 `xian-commit` Skill 注册到用户级目录，不导出本工程安装的其他 Skills。它不安装 hooks 或 policy，也不替代工程级安装。本项目不依赖 Harness。
 
 ## 为什么需要 xian-commit
 
@@ -69,35 +69,57 @@ sh /path/to/xian-commit/install.sh verify
 
 ### 跨 Agent 用户级安装（可选）
 
-如果希望 Qoder、Codex、Claude Code 等产品在所有工程中发现同一套 `xian-*` skills，可以在克隆本仓库后运行：
+如果希望不同产品在所有工程中发现同一份 `xian-commit`，可以运行：
 
 ```sh
 sh /path/to/xian-commit/sync-global.sh install
 sh /path/to/xian-commit/sync-global.sh verify
 ```
 
-同步会建立以下软链：
+共享 hub 为 `~/.agents/skills/xian-commit`，整个目录链接回源仓库，保留真实的 `SKILL.md`，避免部分发现器忽略文件软链。默认建立下面五种产品入口；产品未安装时，创建目录本身不会安装产品。可用 `--agents codex,claude,qoder-cn` 选择子集，之后的 `install/status/verify` 使用相同参数。
 
-- `~/.agents/skills/xian-*`：共享 hub；`xian-commit` 目录内的 `SKILL.md`、`prompts/`、`references/`、`hooks/`、`policy.example.conf` 和 `install.sh` 都指回本仓库。
-- `~/.qoder-cn/skills/xian-*`、`~/.codex/skills/xian-*`、`~/.claude/skills/xian-*`：各产品全局入口，统一指向 `~/.agents/skills/xian-*`。
+| 产品 / 选择值 | 用户级入口 |
+| --- | --- |
+| Codex / `codex` | `~/.codex/skills/xian-commit` |
+| Claude Code / `claude` | `~/.claude/skills/xian-commit` |
+| Qoder CN / `qoder-cn` | `~/.qoder-cn/skills/xian-commit` |
+| Qoder / Qoder CLI / `qoder` | `~/.qoder/skills/xian-commit` |
+| QoderWork / `qoderwork` | `~/.qoderwork/skills/xian-commit` |
+
+Qoder 产品不是同一个目录：[Qoder CLI 文档](https://docs.qoder.com/cli/Skills)、[QoderWork 文档](https://docs.qoder.com/qoderwork/skills)。目录适配不等于每个产品版本已完成运行时认证。
 
 常用命令：
 
 | 命令 | 写入位置 | 用途 |
 | --- | --- | --- |
-| `sh sync-global.sh install` | 用户级软链 | 注册或刷新所有 `xian-*` skills |
+| `sh sync-global.sh install` | 用户级软链与归属清单 | 注册或刷新 `xian-commit` |
 | `sh sync-global.sh status` | 否 | 查看每个产品入口是否 current/missing/conflict |
-| `sh sync-global.sh verify` | 否 | 缺失、断链或冲突时失败 |
+| `sh sync-global.sh verify` | 否 | 校验链接、源资源和清单；不验证 Agent 实际加载 |
 | `sh sync-global.sh uninstall` | 用户级软链 | 只移除本工具管理的软链，保留外部文件 |
 | `sh sync-global.sh install --dry-run` | 否 | 预演同步，不写文件 |
 
-边界：
+更新、迁移与卸载：
 
-- 用户级同步不安装 Git hooks、不创建 `.xian-commit/config`，也不写 `.xian-harness/`；这些仍由 `install.sh` 在目标工程中完成。
-- `xian-commit` 全局 skill 带项目守卫：当前仓库没有 `.xian-commit/config` 或 `.xian-harness/` 时，只应用通用提交纪律并提示安装，不会声称 hooks 已生效。
-- 软链指向当前克隆目录，仓库移动或删除后会断链；移动仓库后重新运行 `install`，并用 `verify` 检查。若需要固定版本，应在目标工程使用工程级安装，或把本仓库固定在一个稳定分支/标签后再同步。
-- 其他 `xian-*` governance skills 只在具备 `.xian-harness/` 的工程项目中使用；不要在普通仓库里把它们当作通用流程。
-- 用户级同步遇到同名真实目录或指向别处的软链会 fail closed，不覆盖外部内容；`uninstall` 也只移除本工具管理的软链。
+- 更新源仓库后，现有软链立即指向新内容；重新运行 `install`、`verify` 并重开 Agent 会话。若需要固定版本，固定源仓库版本或使用工程级副本。
+- 新版将归属记录在 `~/.agents/xian-commit-sync.tsv`。仓库搬迁后，从新位置运行 `install` 可修复原受管链接；源文件删除会使 `verify` 失败，但仍能用任一完整源码副本执行 `uninstall`。
+- 缩减 `--agents` 列表时，只清理已记录且未被用户替换的旧入口。真实同名目录、异目标链接会阻断安装；同目标手工链接标记为 `borrowed`，卸载不会删除。若手工产品入口仍依赖共享 hub，卸载保留 hub，提示手工处理后再重试。
+- 旧版没有归属清单，无法可靠判断哪些链接是手工创建。确认现有 `xian-commit` 链接可以由安装器接管后，先运行一次 `install --adopt-legacy`，再搬迁或卸载。此选项仅接管 `xian-commit`，不接管其他 Skills；旧版导出的其他 `xian-*` 入口需单独检查和处理。
+- `--home /path/to/home` 支持隔离试装；`--dry-run` 不写入目标目录。
+
+项目守卫与实际验证：
+
+- 用户级安装只提供发现入口。没有 `.xian-commit/config` 时采用通用提交纪律；有配置也不代表 hooks 生效，其他工具目录更不能作为安装证明。
+- 从目标仓库运行 `sh ~/.agents/skills/xian-commit/references/check-project.sh`，检查 Git 的有效 hooks 路径及四个 hook 的内容与执行权限。`hooks=unverified` 不能视作防护已经开启。
+- `sync-global.sh verify` 成功只证明链接和资源可访问。重开产品会话，在没有工程级 Skill 的临时工程中显式调用 `xian-commit`，让 Agent 返回 Skill 的实际来源路径和项目守卫结论，不执行 commit/push。这才是该产品当前版本的发现 smoke test。
+- Skill 可发现不等于每次自动触发。若希望稳定采用，应显式调用 Skill，或在该产品支持的用户级指令中添加 Git 交付路由；本脚本不自动改写用户指令。
+
+可选的本机发现测试（需要 Node.js 和对应 CLI，不属于 shell 运行时依赖）：
+
+```sh
+node scripts/check-agent-discovery.mjs codex claude
+```
+
+它在临时空目录中读取产品的初始化发现清单，不发送模型请求、不执行 Git 交付。Qoder CN 可在“扩展 → 已安装 → 技能”中搜索 `xian-commit`。这两种检查验证发现层，不验证模型是否真的采用规范；实际调用仍按上面的 smoke test 完成。
 
 ## 推荐的项目接入方式
 
@@ -145,11 +167,13 @@ sh /path/to/xian-commit/sync-global.sh verify
 | Hook | 拦截/执行内容 | 拒绝或回退行为 |
 | --- | --- | --- |
 | `pre-commit` | 检查 staged 路径，拦截敏感文件、临时文件和项目 deny 规则 | 拒绝 commit，并提示用 `git reset HEAD <files>` 移出暂存区 |
-| `commit-msg` | 校验类型、中文标题、正文、重复类型与 emoji | 拒绝 commit，按提示修正 message 后重新提交 |
+| `commit-msg` | 校验类型、中文标题、正文、重复类型与 emoji；放行 `Merge ` / `Revert "` 开头的 Git 生成消息 | 拒绝普通不合规 commit，按提示重新提交 |
 | `post-commit` | 在 `auto-safe` 条件全部成立时执行普通 push | 条件不足时跳过；push 失败只报告，本地 commit 保持成功 |
 | `pre-push` | 仅检查当前检出的普通分支及其 upstream 的 protected branch、`never` policy 与落后状态 | 拒绝或提示先 `git pull --rebase`；无 upstream 时仅提示首次 push 设置 upstream |
 
 这些 hooks 同样作用于人手输入的 `git commit` / `git push`，不是只对 Agent 生效。
+
+路径检查支持子目录、中文、空格和换行文件名，并允许删除已跟踪的敏感文件；默认拒绝 `*.pem` 等私钥路径。删除 Git 中的文件不代表密钥已经从历史中清除，泄露后的凭据仍需轮换。
 
 若目标仓库已有内容不同的同名 hook，安装器会备份为 `*.pre-xian-commit.bak`，再写入 xian-commit 的 hook。备份 hook **不会自动串联执行**；请按目标项目的实际需求手动组合两者逻辑后再使用。linked worktree 会将 hooks 安装到 Git 解析的共享 hooks 目录；若已配置 `core.hooksPath`，安装、更新和 `verify` 会明确拒绝，避免覆盖 Husky 等现有 hook 管理器。请先确认 hook 管理权，再选择保留现有配置并手动串联，或在确认不再需要时取消该配置。
 
@@ -200,7 +224,7 @@ pre-push 只判断当前检出的普通分支及其 upstream：detached HEAD 会
 | `sh /path/to/xian-commit/install.sh verify` | 否 | 检查安装完整性并做 hook smoke test |
 | `sh /path/to/xian-commit/install.sh status` | 否 | 显示已安装资源与源文件是否一致 |
 | `sh /path/to/xian-commit/install.sh uninstall` | 是 | 移除受管理资源；保留 config 和不同内容的 hooks |
-| `sh /path/to/xian-commit/sync-global.sh install` | 否（写用户级软链） | 将所有 `xian-*` skills 注册到 `~/.agents/skills` 与 Qoder/Codex/Claude 全局目录 |
+| `sh /path/to/xian-commit/sync-global.sh install` | 否（写用户级软链） | 将 `xian-commit` 注册到共享 hub 与选定产品目录 |
 | `sh /path/to/xian-commit/sync-global.sh status` | 否 | 只读查看用户级软链状态 |
 | `sh /path/to/xian-commit/sync-global.sh verify` | 否 | 检查用户级软链、断链和冲突 |
 | `sh /path/to/xian-commit/sync-global.sh uninstall` | 否（移除用户级软链） | 只移除本工具管理的用户级软链 |
@@ -209,9 +233,9 @@ pre-push 只判断当前检出的普通分支及其 upstream：detached HEAD 会
 
 | 对象 | 支持方式 |
 | --- | --- |
-| Codex | 工程级 `.codex/skills/xian-commit` + hooks；可选用户级 `~/.codex/skills/xian-*` |
-| Claude Code | 工程级 `.claude/skills/xian-commit` + hooks；可选用户级 `~/.claude/skills/xian-*` |
-| Qoder | 工程级 hooks/policy 由 `install.sh` 安装；用户级 skill 通过 `sync-global.sh` 注册到 `~/.qoder-cn/skills/xian-*` |
+| Codex | 工程级 `.codex/skills/xian-commit` + hooks；可选用户级入口 |
+| Claude Code | 工程级 `.claude/skills/xian-commit` + hooks；可选用户级入口 |
+| Qoder / Qoder CN / QoderWork | 工程级 hooks/policy 由 `install.sh` 安装；用户级 Skill 按上表区分产品目录，需在所用版本上实际确认发现 |
 | 其他 Coding Agents | 可独立使用 hooks，或在支持 `~/.agents/skills` 时复用用户级 hub；不宣称所有产品自动识别 |
 | Ubuntu | CI 已验证 |
 | macOS | CI 已验证 |
@@ -220,7 +244,7 @@ pre-push 只判断当前检出的普通分支及其 upstream：detached HEAD 会
 
 ## 边界与限制
 
-`xian-commit` 不做代码 review、业务验证或质量 gate、release 管理、版本号更新，也不生成 changelog。它不替业务或 Harness 判断“功能是否完成”，只帮助把已经确认范围的改动以安全、可解释的 Git 方式交付。
+`xian-commit` 不做代码 review、业务验证或质量 gate、release 管理、版本号更新，也不生成 changelog。它不判断“功能是否完成”，只帮助把已经确认范围的改动以安全、可解释的 Git 方式交付。
 
 它也不会自动修改目标项目的 `.gitignore`，不会替你判断备份 hook 应如何编排，更不会绕过 Git 的远端权限、分支保护或冲突处理。用户级同步只负责让 Agent 产品发现 skill；hooks、policy 和项目状态仍以目标工程的工程级安装为准。
 

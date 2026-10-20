@@ -10,7 +10,7 @@ It is not a Node/Python package or a resident service. Runtime prerequisites are
 
 > **Installation scope: project-level enforcement plus optional user-level discovery.**
 > `install.sh` writes the Skill, policy, and hooks into the current target Git repository only. It does not write directly into `~/.codex/skills`, `~/.claude/skills`, or `~/.qoder-cn/skills`. Every project that needs hooks/policy must still be installed separately.
-> `sync-global.sh` is optional: it registers `xian-*` skills as symlinks in user-level directories so Qoder, Codex, and Claude Code can discover the same skills in every project. It does not install hooks or policy, and it does not replace project-level installation.
+> `sync-global.sh` is optional: it registers only this product's `xian-commit` Skill, not other Skills installed in the source project. It does not install hooks or policy, and does not replace project-level installation. This project does not require Harness.
 
 ## Why xian-commit
 
@@ -69,35 +69,57 @@ If `git pull --ff-only` fails because of local changes or divergence, resolve th
 
 ### User-level installation across Agents (optional)
 
-If Qoder, Codex, Claude Code, and similar products should discover the same `xian-*` skills in every project, clone this repository and run:
+To expose the same `xian-commit` Skill across products, run:
 
 ```sh
 sh /path/to/xian-commit/sync-global.sh install
 sh /path/to/xian-commit/sync-global.sh verify
 ```
 
-The sync creates these symlinks:
+The shared hub is `~/.agents/skills/xian-commit`; the whole directory links to this checkout, preserving a real `SKILL.md` rather than a file symlink that some scanners ignore. All five product entries below are created by default, even if those products are not installed. Use `--agents codex,claude,qoder-cn` to select a subset, and repeat the selection for subsequent `install/status/verify` commands.
 
-- `~/.agents/skills/xian-*`: the shared hub. For `xian-commit`, `SKILL.md`, `prompts/`, `references/`, `hooks/`, `policy.example.conf`, and `install.sh` all point back to this repository.
-- `~/.qoder-cn/skills/xian-*`, `~/.codex/skills/xian-*`, and `~/.claude/skills/xian-*`: product-level global entries that point to `~/.agents/skills/xian-*`.
+| Product / selector | User-level entry |
+| --- | --- |
+| Codex / `codex` | `~/.codex/skills/xian-commit` |
+| Claude Code / `claude` | `~/.claude/skills/xian-commit` |
+| Qoder CN / `qoder-cn` | `~/.qoder-cn/skills/xian-commit` |
+| Qoder / Qoder CLI / `qoder` | `~/.qoder/skills/xian-commit` |
+| QoderWork / `qoderwork` | `~/.qoderwork/skills/xian-commit` |
+
+Qoder products do not share a single directory: see the [Qoder CLI documentation](https://docs.qoder.com/cli/Skills) and [QoderWork documentation](https://docs.qoder.com/qoderwork/skills). Directory adapters are not a claim of runtime certification for every version.
 
 Common commands:
 
 | Command | Writes | Purpose |
 | --- | --- | --- |
-| `sh sync-global.sh install` | User-level symlinks | Registers or refreshes all `xian-*` skills |
+| `sh sync-global.sh install` | User-level links and ownership manifest | Registers or refreshes `xian-commit` |
 | `sh sync-global.sh status` | No | Shows whether each product entry is current, missing, or conflicting |
-| `sh sync-global.sh verify` | No | Fails on missing links, broken links, or conflicts |
+| `sh sync-global.sh verify` | No | Checks links, sources and manifest, not actual Agent loading |
 | `sh sync-global.sh uninstall` | User-level symlinks | Removes only links managed by this tool and preserves external files |
 | `sh sync-global.sh install --dry-run` | No | Previews the sync without writing |
 
-Boundaries:
+Updates, relocation and removal:
 
-- User-level sync does not install Git hooks, create `.xian-commit/config`, or write `.xian-harness/`. Those remain the responsibility of `install.sh` in each target project.
-- The global `xian-commit` skill includes a project guard: when the current repository has neither `.xian-commit/config` nor `.xian-harness/`, it applies generic commit discipline, tells the user to install project assets, and never claims that hooks are active.
-- Symlinks point at the current checkout. Moving or deleting the repository breaks them; rerun `install` after a move and use `verify` to check. For a fixed version, use project-level installation or pin this repository to a stable branch or tag before syncing.
-- Other `xian-*` governance skills are intended for projects that have `.xian-harness/`; do not treat them as generic workflows in ordinary repositories.
-- If a real directory or a symlink pointing elsewhere already exists at a target path, user-level sync fails closed and does not overwrite it; `uninstall` removes only links managed by this tool.
+- Updating the source checkout changes linked content immediately. Rerun `install`, then `verify`, and restart Agent sessions. Pin the source version or use project-level copies for a fixed version.
+- Ownership is persisted in `~/.agents/xian-commit-sync.tsv`. After moving the source, run `install` from its new location to repair owned links. Missing source files fail verification; `uninstall` still works from any intact copy using the recorded inventory.
+- Reducing `--agents` reconciles retired owned entries. Conflicting real directories or foreign links stop installation before writes. Existing same-target manual links are `borrowed`, not silently adopted, and survive uninstall. A shared hub needed by borrowed product links is preserved until those links are manually removed and uninstall is retried.
+- Older versions have no reliable ownership inventory. After checking the existing `xian-commit` links, run `install --adopt-legacy` once before moving or uninstalling. Only `xian-commit` is adopted; other `xian-*` entries exported by older versions require separate inspection.
+- Use `--home /path/to/home` for an isolated installation; `--dry-run` does not write to the target.
+
+Project guard and real discovery:
+
+- Without `.xian-commit/config`, use generic commit discipline. A config file alone does not prove hooks are active, and another tool's directory is not an installation marker.
+- From the target repository, run `sh ~/.agents/skills/xian-commit/references/check-project.sh` to check Git's effective hook path, executable bits and content of all four hooks. `hooks=unverified` is not evidence of active protection.
+- A successful `sync-global.sh verify` only proves resource accessibility. Open a new product session in a temporary project without a project-level Skill, explicitly invoke `xian-commit`, and ask for its actual source path and project guard result without committing or pushing. This is the runtime discovery smoke test for that product version.
+- Discovery does not guarantee automatic invocation. Explicitly invoke the Skill or add a Git-delivery routing rule to the product's supported user instructions. This script does not rewrite those instructions.
+
+Optional local discovery test (requires Node.js and the respective CLIs, not additional shell runtime dependencies):
+
+```sh
+node scripts/check-agent-discovery.mjs codex claude
+```
+
+It reads initialization discovery lists in an empty temporary directory, without sending a model prompt or executing Git delivery. In Qoder CN, search for `xian-commit` under Extensions → Installed → Skills. These checks verify discovery, not model invocation; use the smoke test above to check actual invocation.
 
 ## Recommended project integration
 
@@ -153,6 +175,8 @@ If any condition is not met, no automatic push occurs. If an auto-safe push fail
 
 These hooks also apply to `git commit` and `git push` entered by people; they are not limited to Agents.
 
+Path checks handle nested, non-ASCII, space-containing and newline-containing filenames, reject private-key paths such as `*.pem`, and allow deletion of already tracked sensitive files. Deleting a file does not remove secrets from Git history; exposed credentials still need rotation. Git-generated messages starting with `Merge ` or `Revert "` are exempt from the ordinary message format.
+
 If the target repository already has a same-named hook with different contents, the installer backs it up as `*.pre-xian-commit.bak` and writes the xian-commit hook. Backup hooks are **not automatically chained**; manually compose the two behaviors to suit the target project before use. In a linked worktree, hooks are installed in the shared hooks directory resolved by Git. If `core.hooksPath` is configured, installation, updates, and `verify` fail explicitly to avoid overwriting an existing hook manager such as Husky. Decide which tool owns the hooks first, then either keep the existing configuration and chain the behaviors manually or unset it only after confirming that it is no longer needed.
 
 ## How it differs from common tools
@@ -202,7 +226,7 @@ The `install.sh` commands operate on the current target Git repository. User-lev
 | `sh /path/to/xian-commit/install.sh verify` | No | Checks installation completeness and runs a hook smoke test |
 | `sh /path/to/xian-commit/install.sh status` | No | Shows installed resources and whether they match source files |
 | `sh /path/to/xian-commit/install.sh uninstall` | Yes | Removes managed resources while preserving config and hooks whose contents differ from the managed versions |
-| `sh /path/to/xian-commit/sync-global.sh install` | No (writes user-level symlinks) | Registers all `xian-*` skills in `~/.agents/skills` and the Qoder/Codex/Claude global directories |
+| `sh /path/to/xian-commit/sync-global.sh install` | No (writes user-level symlinks) | Registers `xian-commit` in the shared hub and selected product directories |
 | `sh /path/to/xian-commit/sync-global.sh status` | No | Read-only view of user-level link status |
 | `sh /path/to/xian-commit/sync-global.sh verify` | No | Checks user-level links, broken links, and conflicts |
 | `sh /path/to/xian-commit/sync-global.sh uninstall` | No (removes user-level symlinks) | Removes only user-level links managed by this tool |
@@ -211,9 +235,9 @@ The `install.sh` commands operate on the current target Git repository. User-lev
 
 | Target | Support method |
 | --- | --- |
-| Codex | Project-level `.codex/skills/xian-commit` plus hooks; optional user-level `~/.codex/skills/xian-*` |
-| Claude Code | Project-level `.claude/skills/xian-commit` plus hooks; optional user-level `~/.claude/skills/xian-*` |
-| Qoder | Project-level hooks/policy via `install.sh`; user-level skills via `sync-global.sh` into `~/.qoder-cn/skills/xian-*` |
+| Codex | Project-level `.codex/skills/xian-commit` plus hooks; optional user-level entry |
+| Claude Code | Project-level `.claude/skills/xian-commit` plus hooks; optional user-level entry |
+| Qoder / Qoder CN / QoderWork | Project-level hooks/policy via `install.sh`; distinct user-level directories as listed above, with runtime discovery checked on the product version in use |
 | Other Coding Agents | Use the hooks independently, or reuse the user-level hub when the product reads `~/.agents/skills`; automatic recognition by every product is not claimed |
 | Ubuntu | Verified in CI |
 | macOS | Verified in CI |
@@ -222,7 +246,7 @@ Current CI runs only on Ubuntu and macOS; Windows support is not claimed.
 
 ## Scope and limitations
 
-`xian-commit` does not perform code review, business verification or quality gates, release management, version bumps, or changelog generation. It does not replace business or Harness decisions about whether a feature is complete; it only helps deliver already-confirmed changes through Git safely and explainably.
+`xian-commit` does not perform code review, business verification or quality gates, release management, version bumps, or changelog generation. It does not decide whether a feature is complete; it only helps deliver already-confirmed changes through Git safely and explainably.
 
 It also does not automatically modify a target project's `.gitignore`, decide how backup hooks should be orchestrated, or bypass Git remote permissions, branch protection, or conflict resolution. User-level sync only helps Agent products discover Skills; hooks, policy, and project state still come from the project-level installation in each target repository.
 
