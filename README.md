@@ -27,7 +27,32 @@ AI Coding Agent 能写代码，也会在交付最后一步犯具体而昂贵的�
 
 ## 安装与更新
 
-### 首次安装
+### 通过 Skill 安装 hooks（已有全局 Skill 时推荐）
+
+Agent 已能发现 `xian-commit` 时,在目标工程中直接说:
+
+> 使用 xian-commit，为当前工程安装 Git hooks。先检查已有 hooks，保留现有配置，安装后验证，不提交或推送。
+
+Skill 会定位目标仓库和自身安装源、检查冲突、调用 `install.sh hooks`,再读取 `references/check-project.sh` 的结果。无需额外安装工程级 Skill。尚未全局安装时,先完成下方「跨 Agent 用户级安装」,重开 Agent 会话后再发出请求。
+
+检查或更新也可直接说“使用 xian-commit，检查当前工程的 hooks 是否已安装”或“使用 xian-commit，将当前工程的 hooks 更新到本地安装源版本”。检查请求只读;更新请求同样先处理冲突,不会自动拉取源仓库或提交、推送。
+
+手动执行等价流程时,先检查已有 hooks 与 `core.hooksPath`,确认没有待处理的覆盖冲突后,在目标工程运行:
+
+```sh
+cd /path/to/your-project
+sh ~/.agents/skills/xian-commit/install.sh hooks
+sh ~/.agents/skills/xian-commit/references/check-project.sh
+```
+
+- `hooks` 只安装四个 hooks,不会复制 Skill 或创建、修改 `.xian-commit/config`。没有配置时不会自动 push;已有配置仍然生效,包括 `auto-safe`。
+- 四个 hook 均为 `current` 且汇总为 `hooks=current`,表示 Git 有效路径下的文件内容与执行权限检查通过。`hooks=unverified` 不算通过,即使检查脚本退出码为 0。此检查不执行 hooks,不是实际提交测试。
+- **仅安装 hooks 后用上述检查脚本,不要用 `install.sh verify`**;后者要求完整工程级 Skill 和 policy。安装器末尾的通用提示也按此区分。
+- Skill 遇到内容不同的已有 hooks 会先说明冲突,获得替换许可后才继续;安装器本身会备份后替换,不会自动串联。设置了 `core.hooksPath` 时停止直接安装,不擅自清除 Husky 等配置。linked worktree 默认共享 hooks,安装会影响同一仓库的其他 worktree。
+
+这是本地客户端防护,不是不可绕过的服务端门禁。全局 Skill 安装一次即可发现;hooks 仍需按目标仓库安装。
+
+### 首次完整安装（工程级 Skill、policy 与 hooks）
 
 先克隆本仓库，再在**另一个目标 Git 仓库**中安装：
 
@@ -44,7 +69,9 @@ hooks 会从下一次 `git commit` 或 `git push` 起生效。若 Codex 或 Clau
 
 ### 更新已有工程
 
-每个目标工程都保存自己的项目级 Skill、policy 和 hooks，因此 xian-commit 源仓库更新后，需要在每个已接入工程中分别执行更新。先更新本地的 xian-commit 源仓库，再从目标工程运行：
+完整安装的工程保存自己的项目级 Skill、policy 和 hooks，因此 xian-commit 源仓库更新后，需要在每个已接入工程中分别执行更新。若采用全局 Skill + hooks-only,更新源仓库后只需重复上面的 hooks 安装与检查流程,不要使用下面的完整更新命令。
+
+完整安装的更新方式是先更新本地的 xian-commit 源仓库，再从目标工程运行：
 
 ```sh
 git -C /path/to/xian-commit pull --ff-only
@@ -127,12 +154,12 @@ node scripts/check-agent-discovery.mjs codex claude
 
 推荐按以下顺序接入：
 
-1. 在目标仓库运行安装和 `verify`。
-2. 检查 `.xian-commit/config`，按团队习惯选择 `auto-safe`、`explicit-only` 或 `never`。
+1. 在目标仓库通过 Skill 安装 hooks 并检查;需要工程级 Skill 和 policy 时才选完整安装和 `verify`。
+2. 如已有 `.xian-commit/config`,检查其中的 `auto-safe`、`explicit-only` 或 `never` 是否符合团队习惯;hooks-only 无配置时不自动 push。
 3. 重新打开 Codex / Claude Code / Qoder 会话，让项目级 Skill 或用户级同步结果被重新扫描。
 4. 用一次小改动实际执行 commit；确认 hook 提示、提交信息和 push 边界符合预期后，再推广到团队。
 
-如果 Agent 能稳定发现项目级 Skills，不需要再改入口文件。如果希望把 Git 交付入口写得更明确，可以在目标项目已有的文件中增加一条简短路由。
+如果 Agent 能稳定发现全局或项目级 Skill，不需要再改入口文件。如果希望把 Git 交付入口写得更明确，可以在目标项目已有的文件中增加一条简短路由。以下路径示例适用于完整工程级安装;全局 Skill 用户应写“使用 xian-commit Skill，遵守已有项目 policy”，不要引用不存在的工程级副本。
 
 `AGENTS.md`（Codex / 通用 Agent）：
 
@@ -221,7 +248,8 @@ pre-push 只判断当前检出的普通分支及其 upstream：detached HEAD 会
 | `sh /path/to/xian-commit/install.sh update` | 是 | 更新同一套受管理资源，保留现有 config |
 | `sh /path/to/xian-commit/install.sh hooks` | 是 | 仅安装四个 Git hooks |
 | `sh /path/to/xian-commit/install.sh skill` | 是 | 仅安装 Codex/Claude Code Skill、prompt、参考资料与 policy |
-| `sh /path/to/xian-commit/install.sh verify` | 否 | 检查安装完整性并做 hook smoke test |
+| `sh /path/to/xian-commit/install.sh verify` | 否 | 检查完整工程级安装并做 hook smoke test；不适用于 hooks-only |
+| `sh /path/to/xian-commit/references/check-project.sh` | 否 | 检查实际 hooks 内容与执行权限；hooks-only 也适用，须读取 `hooks=current/unverified` |
 | `sh /path/to/xian-commit/install.sh status` | 否 | 显示已安装资源与源文件是否一致 |
 | `sh /path/to/xian-commit/install.sh uninstall` | 是 | 移除受管理资源；保留 config 和不同内容的 hooks |
 | `sh /path/to/xian-commit/sync-global.sh install` | 否（写用户级软链） | 将 `xian-commit` 注册到共享 hub 与选定产品目录 |

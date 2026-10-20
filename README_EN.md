@@ -27,7 +27,32 @@ It is for Git delivery by AI Coding Agents—not a general Git client or a busin
 
 ## Installation and updates
 
-### First installation
+### Install hooks through the Skill (recommended with a global Skill)
+
+Once the Agent can discover `xian-commit`, ask it from the target project:
+
+> Use xian-commit to install Git hooks for this project. Check existing hooks first, preserve existing configuration, and verify the installation. Do not commit or push.
+
+The Skill locates the target repository and its installation source, checks for conflicts, calls `install.sh hooks`, and reads the result from `references/check-project.sh`. No additional project-level Skill copy is needed. If the Skill is not globally installed yet, complete “User-level installation across Agents” below and reopen the Agent session first.
+
+You can also ask “Use xian-commit to check whether this project's hooks are installed” or “Use xian-commit to update this project's hooks to the local source version.” Checks are read-only. Updates follow the same conflict checks and do not automatically pull the source repository, commit, or push.
+
+For the manual equivalent, inspect existing hooks and `core.hooksPath` first. Once any overwrite conflicts are resolved, run from the target project:
+
+```sh
+cd /path/to/your-project
+sh ~/.agents/skills/xian-commit/install.sh hooks
+sh ~/.agents/skills/xian-commit/references/check-project.sh
+```
+
+- `hooks` installs only the four hooks. It does not copy the Skill or create or modify `.xian-commit/config`. Without configuration, automatic push stays off; existing policy still applies, including `auto-safe`.
+- All four hooks must report `current`, with a final `hooks=current`, to confirm matching source content and executable permissions at Git's effective hook path. `hooks=unverified` is not a pass, even if the script exits with code 0. This check does not execute hooks or test a real commit.
+- **After a hooks-only installation, use this check script, not `install.sh verify`**: the latter requires project-level Skills and policy. This distinction also applies to the installer's generic closing hints.
+- The Skill explains conflicts with differing existing hooks and obtains replacement approval before proceeding. The installer itself backs up and replaces hooks without chaining them. A configured `core.hooksPath` stops direct installation; existing Husky or similar configuration is not silently removed. Linked worktrees share hooks by default, so installation affects other worktrees of the same repository.
+
+These are local client-side guardrails, not unbypassable server-side enforcement. Install the global Skill once for discovery; install hooks per target repository.
+
+### First full installation (project-level Skills, policy, and hooks)
 
 Clone this repository first, then install it in **another target Git repository**:
 
@@ -44,7 +69,9 @@ Hooks activate from the next `git commit` or `git push`. If a Codex or Claude Co
 
 ### Update an existing project
 
-Each target project stores its own project-level Skill, policy, and hooks. After the xian-commit source repository changes, update every integrated project separately. Update the local xian-commit source checkout first, then run the installer from the target project:
+A fully installed project stores its own project-level Skill, policy, and hooks. After the xian-commit source repository changes, update every integrated project separately. For a global Skill plus hooks-only setup, update the source checkout and repeat the hooks installation and check above; do not use the full-update commands below.
+
+For a full installation, update the local xian-commit source checkout first, then run the installer from the target project:
 
 ```sh
 git -C /path/to/xian-commit pull --ff-only
@@ -127,12 +154,12 @@ The installer manages only xian-commit's own Skill, prompt, policy, and hooks. I
 
 The recommended integration sequence is:
 
-1. Run the installer and `verify` in the target repository.
-2. Review `.xian-commit/config` and choose `auto-safe`, `explicit-only`, or `never` for the team's workflow.
+1. Ask the Skill to install and check hooks in the target repository. Choose full installation and `verify` only when project-level Skills and policy are also needed.
+2. If `.xian-commit/config` exists, review whether its `auto-safe`, `explicit-only`, or `never` setting fits the team's workflow. Hooks-only without configuration does not automatically push.
 3. Reopen the Codex, Claude Code, or Qoder session so project-level Skills or user-level sync results are rescanned.
 4. Exercise the setup with one small commit. Confirm the hook messages, commit format, and push boundary before rolling it out to the team.
 
-If the Agent reliably discovers project-level Skills, no entry-file change is required. If the repository should make the Git delivery entry point explicit, add a short routing rule to its existing project instructions.
+If the Agent reliably discovers the global or project-level Skill, no entry-file change is required. If the repository should make the Git delivery entry point explicit, add a short routing rule to its existing project instructions. The paths below assume a full project-level installation. Global Skill users should instead say “Use the xian-commit Skill and follow existing project policy,” without referencing a nonexistent project-level copy.
 
 For `AGENTS.md` (Codex or general Agents):
 
@@ -223,7 +250,8 @@ The `install.sh` commands operate on the current target Git repository. User-lev
 | `sh /path/to/xian-commit/install.sh update` | Yes | Updates the same managed resources while preserving existing config |
 | `sh /path/to/xian-commit/install.sh hooks` | Yes | Installs only the four Git hooks |
 | `sh /path/to/xian-commit/install.sh skill` | Yes | Installs only the Codex/Claude Code Skill, prompt, reference material, and policy |
-| `sh /path/to/xian-commit/install.sh verify` | No | Checks installation completeness and runs a hook smoke test |
+| `sh /path/to/xian-commit/install.sh verify` | No | Checks a full project-level installation and runs a hook smoke test; not for hooks-only |
+| `sh /path/to/xian-commit/references/check-project.sh` | No | Checks effective hook content and executable permissions, including hooks-only setups; read `hooks=current/unverified` |
 | `sh /path/to/xian-commit/install.sh status` | No | Shows installed resources and whether they match source files |
 | `sh /path/to/xian-commit/install.sh uninstall` | Yes | Removes managed resources while preserving config and hooks whose contents differ from the managed versions |
 | `sh /path/to/xian-commit/sync-global.sh install` | No (writes user-level symlinks) | Registers `xian-commit` in the shared hub and selected product directories |
