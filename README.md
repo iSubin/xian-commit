@@ -33,14 +33,20 @@ Agent 已能发现 `xian-commit` 时,在目标工程中直接说:
 
 > 使用 xian-commit，为当前工程安装 Git hooks。先检查已有 hooks，保留现有配置，安装后验证，不提交或推送。
 
-Skill 会定位目标仓库和自身安装源、检查冲突、调用 `install.sh hooks`,再读取 `references/check-project.sh` 的结果。无需额外安装工程级 Skill。尚未全局安装时,先完成下方「跨 Agent 用户级安装」,重开 Agent 会话后再发出请求。
+Skill 会定位目标仓库和自身安装源,先运行 `references/check-project.sh`。已为 `hooks=current` 就跳过安装;只有确需首次接入、更新或修复时,才检查冲突、调用 `install.sh hooks` 并再次验证。无需额外安装工程级 Skill。尚未全局安装时,先完成下方「跨 Agent 用户级安装」,重开 Agent 会话后再发出请求。
 
 检查或更新也可直接说“使用 xian-commit，检查当前工程的 hooks 是否已安装”或“使用 xian-commit，将当前工程的 hooks 更新到本地安装源版本”。检查请求只读;更新请求同样先处理冲突,不会自动拉取源仓库或提交、推送。
 
-手动执行等价流程时,先检查已有 hooks 与 `core.hooksPath`,确认没有待处理的覆盖冲突后,在目标工程运行:
+手动执行等价流程时,先在目标工程做只读检查:
 
 ```sh
 cd /path/to/your-project
+sh ~/.agents/skills/xian-commit/references/check-project.sh
+```
+
+若四个 hook 均为 `current` 且汇总为 `hooks=current`,到此结束,不用安装。否则先定位具体原因,检查已有 hooks 与 `core.hooksPath`;确认需要安装、更新或修复且没有待处理的覆盖冲突后,仍在目标工程运行:
+
+```sh
 sh ~/.agents/skills/xian-commit/install.sh hooks
 sh ~/.agents/skills/xian-commit/references/check-project.sh
 ```
@@ -51,6 +57,13 @@ sh ~/.agents/skills/xian-commit/references/check-project.sh
 - Skill 遇到内容不同的已有 hooks 会先说明冲突,获得替换许可后才继续;安装器本身会备份后替换,不会自动串联。设置了 `core.hooksPath` 时停止直接安装,不擅自清除 Husky 等配置。linked worktree 默认共享 hooks,安装会影响同一仓库的其他 worktree。
 
 这是本地客户端防护,不是不可绕过的服务端门禁。全局 Skill 安装一次即可发现;hooks 仍需按目标仓库安装。
+
+#### 不需要每次提交都检查或安装
+
+- 同一个本地仓库通常只安装一次。日常提交和推送不重复安装;新克隆、换电脑后首次接入,或需要更新、修复 hooks 时才处理安装。
+- 同一 Agent 会话首次处理该工程时做一次只读检查;已有检查结果且未观察到相关变化时直接复用。新会话、切换工程或无法确认检查结果来源时重新检查。
+- 用户明确要求检查、安装、更新或修复,或者 hooks 内容、执行权限、`core.hooksPath` / 有效路径、安装源目录或 hooks 源文件发生变化、出现安装异常时,重新检查。只改 README / Skill 说明或普通业务代码,无需因此重查或重装 hooks。
+- 不写永久“已安装”标记,不后台轮询。`hooks=unverified` 先查原因,不能自动重装。复用安装检查结果不影响 Git 每次 commit / push 执行 hooks,也不省略变更归因、policy 和授权检查。
 
 ### 首次完整安装（工程级 Skill、policy 与 hooks）
 
@@ -69,7 +82,7 @@ hooks 会从下一次 `git commit` 或 `git push` 起生效。若 Codex 或 Clau
 
 ### 更新已有工程
 
-完整安装的工程保存自己的项目级 Skill、policy 和 hooks，因此 xian-commit 源仓库更新后，需要在每个已接入工程中分别执行更新。若采用全局 Skill + hooks-only,更新源仓库后只需重复上面的 hooks 安装与检查流程,不要使用下面的完整更新命令。
+完整安装的工程保存自己的项目级 Skill、policy 和 hooks，因此需要采用新版时，要在每个已接入工程中分别更新。若采用全局 Skill + hooks-only,源仓库中的 hooks 有变化时按上面的流程先检查,仍为 `current` 就跳过安装;仅 README / Skill 说明变化不需要重装 hooks,也不要使用下面的完整更新命令。
 
 完整安装的更新方式是先更新本地的 xian-commit 源仓库，再从目标工程运行：
 

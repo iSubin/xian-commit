@@ -1,6 +1,6 @@
 ---
 name: xian-commit
-description: AI coding agent 的 Git 交付治理入口。当用户要求提交、commit、push、推送、收口、处理 dirty worktree,或安装、更新、检查 xian-commit Git hooks 时使用本 skill。按 prompts/commit-message.md 写 message,调用标准 git 命令;通过自带脚本安装和验证工程级 hooks。普通 push 由 policy 控制,force push 和破坏性 git 动作必须显式授权。
+description: AI coding agent 的 Git 交付治理入口。当用户要求提交、commit、push、推送、收口、处理 dirty worktree,或安装、更新、修复、检查 xian-commit Git hooks 时使用本 skill。按 prompts/commit-message.md 写 message,调用标准 git 命令;通过自带脚本安装和验证工程级 hooks。普通 push 由 policy 控制,force push 和破坏性 git 动作必须显式授权。
 ---
 
 # xian-commit 工作流
@@ -21,6 +21,14 @@ xian-commit 是面向 code agent 的 Git 交付治理资产集合。你(AI agent
 
 用户级全局同步只提供 skill 发现,不会安装 hooks、policy 或项目级状态。
 
+### 安装时机与检查频率
+
+- hooks 通常只在每个本地仓库首次接入时安装一次。日常 commit / push 不进入安装流程;仅在用户要求首次接入、更新或修复且检查确认有需要时写入。
+- 同一会话首次使用本 Skill 处理某个目标工程时,做一次只读安装检查;若本会话已有该工程的检查结果且未观察到相关变化,直接复用,不要每次提交或推送都重新检查。
+- 用户明确要求检查、安装、更新或修复时重新检查;观察到 hooks 内容或执行权限、`core.hooksPath` / 有效 hooks 目录、安装源目录或其中的 hooks 源文件变化,以及出现安装异常时,也重新检查。新会话或切换到另一工程后重新建立基线;只改 README / Skill 说明或普通业务代码不使结果失效。
+- 结果只在会话内复用,不写 `installed=true` 等持久标记,不后台轮询。无法确认结果属于当前工程和安装源时重新检查;`hooks=unverified` 不等于未安装,先定位原因,不要反复重试或自动重装。
+- 复用只省略重复的安装状态检查,不省略每次提交的变更归因、policy / 授权判断,也不影响 Git 在 commit / push 时正常执行 hooks。
+
 ## 核心原则
 
 1. **细粒度 commit**:不要把一堆无关改动塞进一个 commit。按逻辑单元拆分,一个 commit 做一件事。
@@ -38,8 +46,8 @@ xian-commit 是面向 code agent 的 Git 交付治理资产集合。你(AI agent
 | "推送一下" / "push" | 远端交付收口:检查 clean、ahead/behind、upstream 后执行普通 push |
 | "commit and push" / "提交并推送" | 先本地收口,再远端收口;这句话可作为普通 push 授权 |
 | "收口" / "交付一下" | 先读 git 事实;dirty 走本地收口,clean 且 ahead 走远端收口 |
-| "为当前工程安装 xian-commit hooks" / "启用提交拦截" | 检查冲突,仅安装 hooks,再验证;不进入 commit / push 流程 |
-| "更新当前工程的 xian-commit hooks" | 使用已定位的本地安装源,检查差异后更新 hooks 并验证 |
+| "为当前工程安装 xian-commit hooks" / "启用提交拦截" | 先检查;已为 `current` 就跳过安装,否则处理冲突后安装并验证;不进入 commit / push 流程 |
+| "更新/修复当前工程的 xian-commit hooks" | 使用已定位的本地安装源检查;已为 `current` 就不写入,确有差异或故障时才更新或修复并验证 |
 | "检查 hooks 是否安装" / "验证 xian-commit hooks" | 只读检查,不自动安装或修复 |
 
 change finished / archived 只说明业务完成,不代表 Git 交付完成。worktree clean + commit 完成才是本地交付收口;分支不再 ahead 且 push 完成才是远端交付收口。
@@ -48,13 +56,15 @@ change finished / archived 只说明业务完成,不代表 Git 交付完成。wo
 
 此流程默认只管理当前工程的四个 hooks,不复制工程级 Skill、不创建或修改 policy、不修改 Agent 入口文件,也不提交或推送。
 
-只有明确的安装或更新请求才执行写入。仅检查请求在定位后直接运行第 4 步,即使发现缺失或差异也只报告,不自动修复。
+只有明确的安装、更新或修复请求才可能执行写入。仅检查请求在定位后直接运行第 4 步,即使发现缺失或差异也只报告,不自动修复。
 
 ### 1. 定位目标与安装源
 
 用 `git rev-parse --show-toplevel` 定位目标工程;不在仓库内就停止,不要自动 `git init`。从当前加载的 Skill 实际目录查找 `install.sh`、`hooks/` 和 `references/check-project.sh`。工程级 Skill 副本不携带安装器与 hooks 源码,此时检查全局 hub `~/.agents/skills/xian-commit` 或用户指定的源码目录;仍缺失则说明需要完整安装源,不要猜路径或写临时替代 hook。
 
 将确认后的完整安装源绝对路径记为 `XIAN_COMMIT_SOURCE`,后续命令始终在目标工程根目录执行,不要切换到源仓库后安装。
+
+先运行第 4 步的只读检查脚本。四个 hook 均为 `current` 且汇总为 `hooks=current` 时,报告“已是当前版本,跳过安装”,直接结束;不调用安装器,也不再重复检查。若为 `hooks=unverified`,先根据具体输出区分缺失、版本差异、权限问题或源文件不可用,不能仅凭汇总结果认定需要重装。
 
 ### 2. 安装前检查冲突
 
@@ -65,7 +75,7 @@ change finished / archived 只说明业务完成,不代表 Git 交付完成。wo
 
 ### 3. 仅安装 hooks
 
-确认无未解决冲突后执行:
+只有确认需要首次安装、更新或修复,且无未解决冲突时才执行:
 
 ```sh
 sh "$XIAN_COMMIT_SOURCE/install.sh" hooks
