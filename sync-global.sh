@@ -1,630 +1,258 @@
 #!/bin/sh
-# sync-global.sh - 将 xian-* skills 注册到用户级 Agent skill 目录
-# 只创建软链，不安装 hooks、policy 或项目级状态。
+# 用户级发现入口。只分发本产品，不扫描工程里安装的其他 Skills。
+set -eu
 
-set -u
-
-usage() {
-    cat <<'EOF'
-xian-commit global skill sync
-
-Usage:
-  sh sync-global.sh [install|status|verify|uninstall] [--dry-run] [--home <dir>]
-
-Modes:
-  install     Register xian-* skills in user-level Agent directories (default)
-  status      Show current user-level link status without writing
-  verify      Fail when a managed link is missing, broken, or conflicting
-  uninstall   Remove only links managed by this script
-
-Options:
-  --dry-run   Print planned changes without writing
-  --home DIR  Use DIR as HOME for testing or isolated installs
-
-Managed locations:
-  <home>/.agents/skills            Canonical shared hub
-  <home>/.qoder-cn/skills          Qoder CN
-  <home>/.codex/skills             Codex
-  <home>/.claude/skills            Claude Code
-EOF
-}
-
-die() {
-    echo "sync-global: $*" >&2
-    exit 1
-}
-
-MODE="install"
-case "${1:-}" in
-    install|status|verify|uninstall)
-        MODE="$1"
-        shift
-        ;;
-    -h|--help)
-        usage
-        exit 0
-        ;;
-    "")
-        ;;
-    *)
-        echo "sync-global: unknown mode '$1'." >&2
-        usage >&2
-        exit 1
-        ;;
-esac
-
+MODE=install
+TARGET_HOME=${HOME:?HOME is required}
+AGENTS="codex claude qoder-cn qoder qoderwork"
 DRY_RUN=0
-HOME_OVERRIDE=""
+ADOPT_LEGACY=0
+SOURCE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+usage() {
+    echo "Usage: sh sync-global.sh [install|status|verify|uninstall] [--home PATH] [--agents codex,claude,qoder-cn,qoder,qoderwork] [--dry-run] [--adopt-legacy]"
+}
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        --dry-run)
-            DRY_RUN=1
-            ;;
-        --home)
-            shift
-            [ "$#" -gt 0 ] || die "--home requires a directory."
-            HOME_OVERRIDE="$1"
-            ;;
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        *)
-            echo "sync-global: unknown option '$1'." >&2
-            usage >&2
-            exit 1
-            ;;
+        install|status|verify|uninstall) MODE=$1 ;;
+        --home) shift; TARGET_HOME=${1:?--home requires a path} ;;
+        --agents) shift; AGENTS=$(printf '%s' "${1:?--agents requires names}" | tr ',' ' ') ;;
+        --dry-run) DRY_RUN=1 ;;
+        --adopt-legacy) ADOPT_LEGACY=1 ;;
+        -h|--help) usage; exit 0 ;;
+        *) usage >&2; exit 2 ;;
     esac
     shift
 done
+for agent in $AGENTS; do
+    case "$agent" in codex|claude|qoder-cn|qoder|qoderwork) ;; *) echo "Unknown agent: $agent" >&2; exit 2 ;; esac
+done
+[ -d "$TARGET_HOME" ] || { echo "Home directory must exist: $TARGET_HOME" >&2; exit 1; }
+TARGET_HOME=$(CDPATH= cd -- "$TARGET_HOME" && pwd -P)
+TAB=$(printf '\t')
+NL='
+'
+case "$SOURCE$TARGET_HOME" in *"$TAB"*|*"$NL"*) echo "Tab/newline in installation paths is unsupported." >&2; exit 1 ;; esac
+HUB=.agents/skills/xian-commit
+STATE="$TARGET_HOME/.agents/xian-commit-sync.tsv"
+LEGACY="$TARGET_HOME/$HUB/.xian-global-managed"
+TEMP=$(mktemp -d "${TMPDIR:-/tmp}/xian-sync.XXXXXX")
+LOCK=""
+cleanup() {
+    rm -f "$TEMP/desired" "$TEMP/next" "$TEMP/old"
+    rmdir "$TEMP"
+    if [ -n "$LOCK" ]; then rmdir "$LOCK"; fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM HUP
+: > "$TEMP/old"
+HAD_STATE=0
+if [ -L "$STATE" ]; then echo "conflict: manifest is a symlink" >&2; exit 1; fi
+if [ -f "$STATE" ]; then cp "$STATE" "$TEMP/old"; HAD_STATE=1; fi
 
-if [ -n "$HOME_OVERRIDE" ]; then
-    HOME="$HOME_OVERRIDE"
-    export HOME
+# 限定 manifest 的作用域；即使文件损坏也不能删除其他路径。
+valid_path() {
+    case "$1:$2" in
+        D:.agents/skills/xian-commit|L:.agents/skills/xian-commit) return 0 ;;
+        L:.agents/skills/xian-commit/*)
+            leaf=${2##*/}
+            [ "$2" = ".agents/skills/xian-commit/$leaf" ] || return 1
+            case "$leaf" in ""|.|..) return 1 ;; esac
+            return 0 ;;
+        L:.codex/skills/xian-commit|L:.claude/skills/xian-commit|L:.qoder-cn/skills/xian-commit|L:.qoder/skills/xian-commit|L:.qoderwork/skills/xian-commit) return 0 ;;
+    esac
+    return 1
+}
+while IFS="$TAB" read -r kind owner rel target extra; do
+    [ -n "$kind" ] || continue
+    valid_path "$kind" "$rel" || { echo "Invalid manifest path: $rel" >&2; exit 1; }
+    case "$owner" in owned|borrowed) ;; *) echo "Invalid manifest ownership" >&2; exit 1 ;; esac
+    [ -n "$target" ] && [ -z "$extra" ] || { echo "Invalid manifest row" >&2; exit 1; }
+done < "$TEMP/old"
+if ! awk -F '\t' 'seen[$3]++ {exit 1}' "$TEMP/old"; then echo "Duplicate manifest path" >&2; exit 1; fi
+
+# 拒绝经由父目录软链改写用户其他位置。
+safe_parent() {
+    parent=${1%/*}
+    while [ "$parent" != "." ] && [ -n "$parent" ]; do
+        [ ! -L "$TARGET_HOME/$parent" ] || return 1
+        [ ! -e "$TARGET_HOME/$parent" ] || [ -d "$TARGET_HOME/$parent" ] || return 1
+        case "$parent" in */*) parent=${parent%/*} ;; *) break ;; esac
+    done
+}
+safe_parent .agents/xian-commit-sync.tsv || {
+    echo "conflict: symlink/non-directory state parent" >&2
+    exit 1
+}
+matches() {
+    if [ "$1" = D ]; then
+        [ -d "$TARGET_HOME/$2" ] && [ ! -L "$TARGET_HOME/$2" ]
+    else
+        [ -L "$TARGET_HOME/$2" ] && [ "$(readlink "$TARGET_HOME/$2")" = "$3" ]
+    fi
+}
+exists() { [ -e "$TARGET_HOME/$1" ] || [ -L "$TARGET_HOME/$1" ]; }
+record() { printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$TEMP/next"; }
+: > "$TEMP/next"
+: > "$TEMP/desired"
+if [ "$MODE" != uninstall ]; then
+    printf 'L\t%s\t%s\n' "$HUB" "$SOURCE" >> "$TEMP/desired"
+    for agent in $AGENTS; do
+        printf 'L\t.%s/skills/xian-commit\t../../.agents/skills/xian-commit\n' "$agent"
+    done | sort -u >> "$TEMP/desired"
 fi
-[ -n "${HOME:-}" ] || die "HOME is not set."
-
-SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-REPO_ROOT="$SCRIPT_DIR"
-
-AGENTS_ROOT="$HOME/.agents/skills"
-QODER_ROOT="$HOME/.qoder-cn/skills"
-CODEX_ROOT="$HOME/.codex/skills"
-CLAUDE_ROOT="$HOME/.claude/skills"
-XIAN_COMMIT_HUB="$AGENTS_ROOT/xian-commit"
-MANAGED_MARKER=".xian-global-managed"
-GUARD_MARKER="xian-commit:global-guard"
 
 FAILED=0
-CONFLICTS=0
-HUB_OK=1
-LINK_OK=1
-
-SKILL_NAMES=""
-SKILL_COUNT=0
-for skill_dir in "$REPO_ROOT"/.codex/skills/xian-*; do
-    [ -d "$skill_dir" ] || continue
-    [ -f "$skill_dir/SKILL.md" ] || continue
-    skill_name=$(basename "$skill_dir")
-    [ "$skill_name" = "xian-commit" ] && continue
-    SKILL_NAMES="$SKILL_NAMES $skill_name"
-    SKILL_COUNT=$((SKILL_COUNT + 1))
-done
-
-path_exists() {
-    [ -e "$1" ] || [ -L "$1" ]
-}
-
-resolve_path() {
-    rp_path="$1"
-    rp_depth="${2:-0}"
-    if [ "$rp_depth" -gt 20 ]; then
-        printf '%s\n' "$rp_path"
-        return 0
-    fi
-    if [ -L "$rp_path" ]; then
-        rp_dir=$(dirname "$rp_path")
-        rp_target=$(readlink "$rp_path" 2>/dev/null) || {
-            printf '%s\n' "$rp_path"
-            return 0
-        }
-        case "$rp_target" in
-            /*) rp_next="$rp_target" ;;
-            *) rp_next="$rp_dir/$rp_target" ;;
-        esac
-        resolve_path "$rp_next" $((rp_depth + 1))
-        return 0
-    fi
-    if [ -d "$rp_path" ]; then
-        (CDPATH= cd -- "$rp_path" 2>/dev/null && pwd -P) || printf '%s\n' "$rp_path"
-        return 0
-    fi
-    if [ -e "$rp_path" ]; then
-        rp_dir=$(dirname "$rp_path")
-        rp_base=$(basename "$rp_path")
-        (CDPATH= cd -- "$rp_dir" 2>/dev/null && printf '%s/%s\n' "$(pwd -P)" "$rp_base") || printf '%s\n' "$rp_path"
-        return 0
-    fi
-    printf '%s\n' "$rp_path"
-}
-
-link_matches() {
-    lm_link="$1"
-    lm_expected="$2"
-    [ -L "$lm_link" ] || return 1
-    [ "$(resolve_path "$lm_link")" = "$(resolve_path "$lm_expected")" ]
-}
-
-link_is_managed() {
-    lim_link="$1"
-    lim_target="$2"
-    lim_expected="$3"
-    [ -L "$lim_link" ] || return 1
-    lim_raw=$(readlink "$lim_link" 2>/dev/null) || return 1
-    [ "$lim_raw" = "$lim_target" ] && return 0
-    link_matches "$lim_link" "$lim_expected"
-}
-
-ensure_symlink() {
-    es_link="$1"
-    es_target="$2"
-    es_expected="$3"
-    es_label="$4"
-    LINK_OK=1
-    if [ -L "$es_link" ]; then
-        if link_matches "$es_link" "$es_expected"; then
-            echo "  current: $es_label -> $es_link"
-        else
-            echo "  conflict: $es_label -> $es_link (points elsewhere; left untouched)" >&2
-            LINK_OK=0
-            FAILED=1
-        fi
-        return 0
-    fi
-    if path_exists "$es_link"; then
-        echo "  conflict: $es_label -> $es_link (existing non-symlink; left untouched)" >&2
-        LINK_OK=0
-        FAILED=1
-        return 0
-    fi
-    if [ "$DRY_RUN" -eq 1 ]; then
-        echo "  would create: $es_label -> $es_link"
-        return 0
-    fi
-    mkdir -p "$(dirname "$es_link")" || {
-        echo "  failed: $es_label (cannot create parent directory)" >&2
-        LINK_OK=0
-        FAILED=1
-        return 0
-    }
-    ln -s "$es_target" "$es_link" || {
-        echo "  failed: $es_label -> $es_link" >&2
-        LINK_OK=0
-        FAILED=1
-        return 0
-    }
-    echo "  created: $es_label -> $es_link"
-}
-
-check_symlink() {
-    cs_link="$1"
-    cs_expected="$2"
-    cs_label="$3"
-    if [ -L "$cs_link" ]; then
-        if link_matches "$cs_link" "$cs_expected"; then
-            echo "  current: $cs_label -> $cs_link"
-        else
-            echo "  conflict: $cs_label -> $cs_link (points elsewhere)" >&2
-            FAILED=1
-        fi
-    elif path_exists "$cs_link"; then
-        echo "  conflict: $cs_label -> $cs_link (existing non-symlink)" >&2
-        FAILED=1
-    else
-        echo "  missing: $cs_label -> $cs_link" >&2
-        FAILED=1
-    fi
-}
-
-check_skill_link() {
-    csl_link="$1"
-    csl_expected="$2"
-    csl_label="$3"
-    check_symlink "$csl_link" "$csl_expected" "$csl_label"
-    if [ ! -f "$csl_link/SKILL.md" ]; then
-        echo "  missing: $csl_label/SKILL.md" >&2
-        FAILED=1
-    fi
-}
-
-preflight_symlink() {
-    pf_link="$1"
-    pf_target="$2"
-    pf_expected="$3"
-    pf_label="$4"
-    if [ -L "$pf_link" ]; then
-        if link_is_managed "$pf_link" "$pf_target" "$pf_expected"; then
-            return 0
-        fi
-        echo "  conflict: $pf_label -> $pf_link (points elsewhere)" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-        return 0
-    fi
-    if path_exists "$pf_link"; then
-        echo "  conflict: $pf_label -> $pf_link (existing non-symlink)" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-    fi
-}
-
-preflight_hub_link() {
-    phl_link="$1"
-    phl_target="$2"
-    phl_label="$3"
-    if [ -L "$phl_link" ]; then
-        if link_matches "$phl_link" "$phl_target"; then
-            return 0
-        fi
-        echo "  conflict: $phl_label -> $phl_link (points elsewhere)" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-        return 0
-    fi
-    if path_exists "$phl_link"; then
-        echo "  conflict: $phl_label -> $phl_link (existing non-symlink)" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-    fi
-}
-
-product_roots() {
-    printf '%s\n' "$QODER_ROOT:qoder" "$CODEX_ROOT:codex" "$CLAUDE_ROOT:claude"
-}
-
-preflight_install() {
-    [ -f "$REPO_ROOT/SKILL.md" ] || {
-        echo "  missing source: $REPO_ROOT/SKILL.md" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-    }
-    [ -f "$REPO_ROOT/install.sh" ] || {
-        echo "  missing source: $REPO_ROOT/install.sh" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-    }
-    [ -f "$REPO_ROOT/prompts/commit-message.md" ] || {
-        echo "  missing source: $REPO_ROOT/prompts/commit-message.md" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-    }
-    [ -d "$REPO_ROOT/references" ] || {
-        echo "  missing source: $REPO_ROOT/references" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-    }
-    [ -f "$REPO_ROOT/hooks/pre-commit" ] || {
-        echo "  missing source: $REPO_ROOT/hooks/pre-commit" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-    }
-    [ -f "$REPO_ROOT/policy.example.conf" ] || {
-        echo "  missing source: $REPO_ROOT/policy.example.conf" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-    }
-
-    if [ -L "$XIAN_COMMIT_HUB" ]; then
-        echo "  conflict: xian-commit hub -> $XIAN_COMMIT_HUB (unexpected symlink)" >&2
-        CONFLICTS=$((CONFLICTS + 1))
-    elif [ -d "$XIAN_COMMIT_HUB" ]; then
-        if [ ! -f "$XIAN_COMMIT_HUB/$MANAGED_MARKER" ]; then
-            echo "  conflict: xian-commit hub -> $XIAN_COMMIT_HUB (directory is not managed by sync-global)" >&2
-            CONFLICTS=$((CONFLICTS + 1))
-        else
-            preflight_hub_link "$XIAN_COMMIT_HUB/SKILL.md" "$REPO_ROOT/SKILL.md" "xian-commit/SKILL.md"
-            preflight_hub_link "$XIAN_COMMIT_HUB/install.sh" "$REPO_ROOT/install.sh" "xian-commit/install.sh"
-            preflight_hub_link "$XIAN_COMMIT_HUB/prompts" "$REPO_ROOT/prompts" "xian-commit/prompts"
-            preflight_hub_link "$XIAN_COMMIT_HUB/references" "$REPO_ROOT/references" "xian-commit/references"
-            preflight_hub_link "$XIAN_COMMIT_HUB/hooks" "$REPO_ROOT/hooks" "xian-commit/hooks"
-            preflight_hub_link "$XIAN_COMMIT_HUB/policy.example.conf" "$REPO_ROOT/policy.example.conf" "xian-commit/policy.example.conf"
-        fi
-    fi
-
-    for skill_name in $SKILL_NAMES; do
-        preflight_symlink "$AGENTS_ROOT/$skill_name" "$REPO_ROOT/.codex/skills/$skill_name" "$REPO_ROOT/.codex/skills/$skill_name" "agents/$skill_name"
+conflict() { echo "conflict: $1" >&2; FAILED=1; }
+MIGRATE_HUB=0
+if [ "$MODE" != uninstall ]; then
+    for asset in SKILL.md install.sh prompts references hooks policy.example.conf; do
+        [ -e "$SOURCE/$asset" ] || conflict "missing source: $SOURCE/$asset"
     done
-
-    for product_root in $(product_roots); do
-        product_dir=${product_root%%:*}
-        product_label=${product_root##*:}
-        preflight_symlink "$product_dir/xian-commit" "../../.agents/skills/xian-commit" "$XIAN_COMMIT_HUB" "$product_label/xian-commit"
-        for skill_name in $SKILL_NAMES; do
-            preflight_symlink "$product_dir/$skill_name" "../../.agents/skills/$skill_name" "$AGENTS_ROOT/$skill_name" "$product_label/$skill_name"
+fi
+if [ "$MODE" = install ] && [ -e "$LEGACY" ] && [ ! -s "$TEMP/old" ] && [ "$ADOPT_LEGACY" -ne 1 ]; then
+    conflict "legacy install: use --adopt-legacy once after checking the existing links"
+fi
+if [ "$MODE" = uninstall ] && [ -e "$LEGACY" ] && [ ! -s "$TEMP/old" ]; then
+    conflict "legacy install: run install --adopt-legacy before uninstall"
+fi
+# 旧版 hub 是真实目录 + 文件软链。确认每个成员归属后才能转换成目录软链。
+# Codex 等产品的发现器可能忽略软链形式的 SKILL.md。
+if [ "$MODE" = install ] && [ -d "$TARGET_HOME/$HUB" ] && [ ! -L "$TARGET_HOME/$HUB" ]; then
+    if awk -F '\t' -v p="$HUB" '$1=="D" && $2=="owned" && $3==p {found=1} END {exit !found}' "$TEMP/old"; then
+        MIGRATE_HUB=1
+    elif [ "$ADOPT_LEGACY" -eq 1 ] && [ -f "$LEGACY" ] && [ ! -L "$LEGACY" ]; then
+        MIGRATE_HUB=1
+    fi
+    if [ "$MIGRATE_HUB" -eq 1 ]; then
+        for member in "$TARGET_HOME/$HUB"/* "$TARGET_HOME/$HUB"/.[!.]* "$TARGET_HOME/$HUB"/..?*; do
+            [ -e "$member" ] || [ -L "$member" ] || continue
+            asset=${member##*/}
+            case "$asset" in
+                .xian-global-managed)
+                    [ -f "$member" ] && [ ! -L "$member" ] || conflict "modified legacy marker"
+                    ;;
+                SKILL.md|install.sh|prompts|references|hooks|policy.example.conf)
+                    expected=$(awk -F '\t' -v p="$HUB/$asset" '$1=="L" && $2=="owned" && $3==p {print $4}' "$TEMP/old")
+                    if [ "$HAD_STATE" -eq 0 ]; then expected="$SOURCE/$asset"; fi
+                    [ -n "$expected" ] && matches L "$HUB/$asset" "$expected" || conflict "modified/borrowed legacy resource: $asset"
+                    ;;
+                *) conflict "extra legacy hub content (preserved): $asset" ;;
+            esac
         done
-    done
-}
-
-ensure_hub_link() {
-    ehl_link="$1"
-    ehl_target="$2"
-    ehl_label="$3"
-    if [ -L "$ehl_link" ]; then
-        if link_matches "$ehl_link" "$ehl_target"; then
-            echo "  current: $ehl_label"
+    fi
+fi
+while IFS="$TAB" read -r kind rel target; do
+    safe_parent "$rel" || { conflict "symlink/non-directory parent: $rel"; continue; }
+    if [ "$kind" = L ] && [ "${rel#"$HUB/"}" != "$rel" ] && [ ! -e "$target" ]; then
+        conflict "missing source: $target"
+    fi
+    old_owner=$(awk -F '\t' -v p="$rel" '$3==p {print $2}' "$TEMP/old")
+    old_target=$(awk -F '\t' -v p="$rel" '$3==p {print $4}' "$TEMP/old")
+    owner=owned
+    if [ "$rel" = "$HUB" ] && [ "$MIGRATE_HUB" -eq 1 ]; then
+        owner=owned
+    elif [ -n "$old_owner" ]; then
+        owner=$old_owner
+        if exists "$rel" && ! matches "$kind" "$rel" "$old_target"; then
+            conflict "modified managed entry (preserved): $rel"
+        elif [ "$owner" = borrowed ] && ! matches "$kind" "$rel" "$target"; then
+            conflict "external entry cannot be repaired automatically: $rel"
+        fi
+    elif exists "$rel"; then
+        if matches "$kind" "$rel" "$target"; then
+            owner=borrowed
+            if [ "$ADOPT_LEGACY" -eq 1 ] && [ -f "$LEGACY" ] && [ ! -L "$LEGACY" ]; then owner=owned; fi
         else
-            echo "  conflict: $ehl_label -> $ehl_link (points elsewhere; left untouched)" >&2
-            FAILED=1
+            conflict "external entry (preserved): $rel"
         fi
-        return 0
     fi
-    if path_exists "$ehl_link"; then
-        echo "  conflict: $ehl_label -> $ehl_link (existing non-symlink; left untouched)" >&2
-        FAILED=1
-        return 0
+    record "$kind" "$owner" "$rel" "$target"
+    if [ "$MODE" = verify ] || [ "$MODE" = status ]; then
+        if [ -z "$old_owner" ]; then conflict "unregistered: $rel"
+        elif matches "$kind" "$rel" "$target" && [ -e "$TARGET_HOME/$rel" ]; then
+            echo "current: $rel ($owner)"
+        else conflict "missing, dangling or outdated: $rel"; fi
     fi
-    if [ "$DRY_RUN" -eq 1 ]; then
-        echo "  would create: $ehl_label"
-        return 0
-    fi
-    ln -s "$ehl_target" "$ehl_link" || {
-        echo "  failed: $ehl_label" >&2
-        FAILED=1
-        return 0
-    }
-    echo "  created: $ehl_label"
-}
+done < "$TEMP/desired"
 
-install_xian_commit_hub() {
-    HUB_OK=1
-    if [ -L "$XIAN_COMMIT_HUB" ]; then
-        echo "  conflict: xian-commit hub -> $XIAN_COMMIT_HUB (unexpected symlink; left untouched)" >&2
-        HUB_OK=0
-        FAILED=1
-        return 0
+# 旧清单驱动卸载/退役，不依赖当前源文件枚举。
+while IFS="$TAB" read -r kind owner rel target; do
+    [ -n "$kind" ] || continue
+    if awk -F '\t' -v p="$rel" '$2==p {found=1} END {exit !found}' "$TEMP/desired"; then continue; fi
+    if [ "$MODE" = status ] || [ "$MODE" = verify ]; then conflict "retired entry needs install reconciliation: $rel"; continue; fi
+    safe_parent "$rel" || { conflict "unsafe parent: $rel"; continue; }
+    if [ "$owner" = owned ] && exists "$rel" && ! matches "$kind" "$rel" "$target"; then
+        echo "preserved: modified entry $rel"
     fi
-    if [ -d "$XIAN_COMMIT_HUB" ]; then
-        if [ ! -f "$XIAN_COMMIT_HUB/$MANAGED_MARKER" ]; then
-            echo "  conflict: xian-commit hub -> $XIAN_COMMIT_HUB (directory is not managed by sync-global; left untouched)" >&2
-            HUB_OK=0
-            FAILED=1
-            return 0
+done < "$TEMP/old"
+if [ "$FAILED" -ne 0 ]; then
+    echo "No files written." >&2
+    exit 1
+fi
+if [ "$MODE" = status ] || [ "$MODE" = verify ]; then
+    echo "Links verified. Agent runtime discovery is NOT checked; open a new session and invoke xian-commit."
+    exit 0
+fi
+if [ "$DRY_RUN" -eq 1 ]; then echo "dry-run: $MODE; no files written"; exit 0; fi
+mkdir -p "$TARGET_HOME/.agents"
+LOCK="$TARGET_HOME/.agents/.xian-commit-sync.lock"
+if ! mkdir "$LOCK" 2>/dev/null; then LOCK=""; echo "Another sync is running (or a stale lock needs inspection)." >&2; exit 1; fi
+if [ -f "$STATE" ]; then
+    cmp -s "$STATE" "$TEMP/old" || { echo "Manifest changed; retry." >&2; exit 1; }
+elif [ -s "$TEMP/old" ]; then echo "Manifest disappeared; retry." >&2; exit 1; fi
+
+KEEP_HUB=0
+if [ "$MODE" = uninstall ]; then
+    while IFS="$TAB" read -r kind owner rel target; do
+        case "$rel" in "$HUB"|"$HUB/"*) continue ;; esac
+        if [ "$owner" = borrowed ] && matches "$kind" "$rel" "$target"; then
+            KEEP_HUB=1
         fi
-        echo "  current: xian-commit hub -> $XIAN_COMMIT_HUB"
-    elif [ "$DRY_RUN" -eq 1 ]; then
-        echo "  would create: xian-commit hub -> $XIAN_COMMIT_HUB"
-    else
-        mkdir -p "$XIAN_COMMIT_HUB" || {
-            echo "  failed: xian-commit hub (cannot create directory)" >&2
-            HUB_OK=0
-            FAILED=1
-            return 0
-        }
-        printf 'xian-commit user-level skill\n' > "$XIAN_COMMIT_HUB/$MANAGED_MARKER" || {
-            echo "  failed: xian-commit hub marker" >&2
-            HUB_OK=0
-            FAILED=1
-            return 0
-        }
-        echo "  created: xian-commit hub -> $XIAN_COMMIT_HUB"
+    done < "$TEMP/old"
+fi
+while IFS="$TAB" read -r kind owner rel target; do
+    [ -n "$kind" ] || continue
+    if awk -F '\t' -v p="$rel" '$2==p {found=1} END {exit !found}' "$TEMP/desired"; then continue; fi
+    [ "$owner" = owned ] || continue
+    if [ "$KEEP_HUB" -eq 1 ]; then
+        case "$rel" in "$HUB"|"$HUB/"*) continue ;; esac
     fi
-
-    ensure_hub_link "$XIAN_COMMIT_HUB/SKILL.md" "$REPO_ROOT/SKILL.md" "xian-commit/SKILL.md"
-    ensure_hub_link "$XIAN_COMMIT_HUB/install.sh" "$REPO_ROOT/install.sh" "xian-commit/install.sh"
-    ensure_hub_link "$XIAN_COMMIT_HUB/prompts" "$REPO_ROOT/prompts" "xian-commit/prompts"
-    ensure_hub_link "$XIAN_COMMIT_HUB/references" "$REPO_ROOT/references" "xian-commit/references"
-    ensure_hub_link "$XIAN_COMMIT_HUB/hooks" "$REPO_ROOT/hooks" "xian-commit/hooks"
-    ensure_hub_link "$XIAN_COMMIT_HUB/policy.example.conf" "$REPO_ROOT/policy.example.conf" "xian-commit/policy.example.conf"
-}
-
-install_one() {
-    io_name="$1"
-    if [ "$io_name" = "xian-commit" ]; then
-        install_xian_commit_hub
-        [ "$HUB_OK" -eq 1 ] || return 0
-        io_hub="$XIAN_COMMIT_HUB"
-    else
-        io_source="$REPO_ROOT/.codex/skills/$io_name"
-        if [ ! -f "$io_source/SKILL.md" ]; then
-            echo "  missing source: $io_name -> $io_source" >&2
-            FAILED=1
-            return 0
-        fi
-        ensure_symlink "$AGENTS_ROOT/$io_name" "$io_source" "$io_source" "agents/$io_name"
-        [ "$LINK_OK" -eq 1 ] || return 0
-        io_hub="$AGENTS_ROOT/$io_name"
+    if [ "$kind" = L ] && matches "$kind" "$rel" "$target"; then
+        unlink "$TARGET_HOME/$rel"
+        echo "removed: $rel"
     fi
-
-    for product_root in $(product_roots); do
-        product_dir=${product_root%%:*}
-        product_label=${product_root##*:}
-        ensure_symlink "$product_dir/$io_name" "../../.agents/skills/$io_name" "$io_hub" "$product_label/$io_name"
-    done
-}
-
-install_all() {
-    echo "xian-commit: 同步用户级 Agent skills"
-    echo "  hub: $AGENTS_ROOT"
-    echo "  products: $QODER_ROOT, $CODEX_ROOT, $CLAUDE_ROOT"
-    preflight_install
-    if [ "$CONFLICTS" -gt 0 ]; then
-        echo "sync-global: 发现 $CONFLICTS 个冲突，未写入任何文件。" >&2
-        exit 1
-    fi
-    install_one "xian-commit"
-    for skill_name in $SKILL_NAMES; do
-        install_one "$skill_name"
-    done
-    echo "  skills: 1 + $SKILL_COUNT"
-    if [ "$FAILED" -ne 0 ]; then
-        echo "sync-global: 同步未完全成功，请检查上面的冲突或失败项。" >&2
-        exit 1
-    fi
-    if [ "$DRY_RUN" -eq 1 ]; then
-        echo "sync-global: dry-run 完成，未写入文件。"
-    else
-        echo "sync-global: 用户级同步完成。工程级 hooks/policy 仍需在目标仓库运行 install.sh。"
-    fi
-}
-
-check_xian_commit_hub() {
-    if [ -L "$XIAN_COMMIT_HUB" ]; then
-        echo "  conflict: xian-commit hub -> $XIAN_COMMIT_HUB (unexpected symlink)" >&2
-        FAILED=1
-        return 0
-    fi
-    if [ ! -d "$XIAN_COMMIT_HUB" ]; then
-        echo "  missing: xian-commit hub -> $XIAN_COMMIT_HUB" >&2
-        FAILED=1
-        return 0
-    fi
-    if [ ! -f "$XIAN_COMMIT_HUB/$MANAGED_MARKER" ]; then
-        echo "  conflict: xian-commit hub -> $XIAN_COMMIT_HUB (not managed by sync-global)" >&2
-        FAILED=1
-        return 0
-    fi
-    echo "  current: xian-commit hub -> $XIAN_COMMIT_HUB"
-    check_symlink "$XIAN_COMMIT_HUB/SKILL.md" "$REPO_ROOT/SKILL.md" "xian-commit/SKILL.md"
-    check_symlink "$XIAN_COMMIT_HUB/install.sh" "$REPO_ROOT/install.sh" "xian-commit/install.sh"
-    check_symlink "$XIAN_COMMIT_HUB/prompts" "$REPO_ROOT/prompts" "xian-commit/prompts"
-    check_symlink "$XIAN_COMMIT_HUB/references" "$REPO_ROOT/references" "xian-commit/references"
-    check_symlink "$XIAN_COMMIT_HUB/hooks" "$REPO_ROOT/hooks" "xian-commit/hooks"
-    check_symlink "$XIAN_COMMIT_HUB/policy.example.conf" "$REPO_ROOT/policy.example.conf" "xian-commit/policy.example.conf"
-    for required in SKILL.md install.sh prompts/commit-message.md hooks/pre-commit policy.example.conf; do
-        if [ ! -f "$XIAN_COMMIT_HUB/$required" ]; then
-            echo "  missing: xian-commit/$required" >&2
-            FAILED=1
-        fi
-    done
-    if [ ! -d "$XIAN_COMMIT_HUB/references" ]; then
-        echo "  missing: xian-commit/references" >&2
-        FAILED=1
-    fi
-}
-
-status_all() {
-    echo "xian-commit: 用户级 Agent skill 状态"
-    check_xian_commit_hub
-    for skill_name in $SKILL_NAMES; do
-        check_skill_link "$AGENTS_ROOT/$skill_name" "$REPO_ROOT/.codex/skills/$skill_name" "agents/$skill_name"
-    done
-    for product_root in $(product_roots); do
-        product_dir=${product_root%%:*}
-        product_label=${product_root##*:}
-        check_skill_link "$product_dir/xian-commit" "$XIAN_COMMIT_HUB" "$product_label/xian-commit"
-        for skill_name in $SKILL_NAMES; do
-            check_skill_link "$product_dir/$skill_name" "$AGENTS_ROOT/$skill_name" "$product_label/$skill_name"
-        done
-    done
-}
-
-verify_all() {
-    echo "xian-commit: 验证用户级 Agent skill 同步"
-    if grep -q "$GUARD_MARKER" "$REPO_ROOT/SKILL.md"; then
-        echo "  ok: xian-commit global guard"
-    else
-        echo "  missing: xian-commit global guard marker in SKILL.md" >&2
-        FAILED=1
-    fi
-    check_xian_commit_hub
-    for skill_name in $SKILL_NAMES; do
-        check_skill_link "$AGENTS_ROOT/$skill_name" "$REPO_ROOT/.codex/skills/$skill_name" "agents/$skill_name"
-    done
-    for product_root in $(product_roots); do
-        product_dir=${product_root%%:*}
-        product_label=${product_root##*:}
-        check_skill_link "$product_dir/xian-commit" "$XIAN_COMMIT_HUB" "$product_label/xian-commit"
-        for skill_name in $SKILL_NAMES; do
-            check_skill_link "$product_dir/$skill_name" "$AGENTS_ROOT/$skill_name" "$product_label/$skill_name"
-        done
-    done
-    if [ "$FAILED" -ne 0 ]; then
-        echo "sync-global verify: 用户级同步不完整。" >&2
-        exit 1
-    fi
-    echo "  skills: 1 + $SKILL_COUNT"
-    echo "sync-global verify: ok"
-}
-
-remove_managed_link() {
-    rml_link="$1"
-    rml_target="$2"
-    rml_expected="$3"
-    rml_label="$4"
-    if [ ! -L "$rml_link" ] && ! path_exists "$rml_link"; then
-        echo "  missing: $rml_label -> $rml_link"
-        return 0
-    fi
-    if link_is_managed "$rml_link" "$rml_target" "$rml_expected"; then
-        if [ "$DRY_RUN" -eq 1 ]; then
-            echo "  would remove: $rml_label -> $rml_link"
-        else
-            rm -f "$rml_link" || {
-                echo "  failed: $rml_label -> $rml_link" >&2
-                FAILED=1
-                return 0
-            }
-            echo "  removed: $rml_label -> $rml_link"
-        fi
-    else
-        echo "  kept: $rml_label -> $rml_link (not managed by sync-global)" >&2
-    fi
-}
-
-remove_xian_commit_hub() {
-    if [ -L "$XIAN_COMMIT_HUB" ]; then
-        echo "  kept: xian-commit hub -> $XIAN_COMMIT_HUB (unexpected symlink)" >&2
-        return 0
-    fi
-    if [ ! -d "$XIAN_COMMIT_HUB" ]; then
-        echo "  missing: xian-commit hub -> $XIAN_COMMIT_HUB"
-        return 0
-    fi
-    if [ ! -f "$XIAN_COMMIT_HUB/$MANAGED_MARKER" ]; then
-        echo "  kept: xian-commit hub -> $XIAN_COMMIT_HUB (not managed by sync-global)" >&2
-        return 0
-    fi
-    remove_managed_link "$XIAN_COMMIT_HUB/SKILL.md" "$REPO_ROOT/SKILL.md" "$REPO_ROOT/SKILL.md" "xian-commit/SKILL.md"
-    remove_managed_link "$XIAN_COMMIT_HUB/install.sh" "$REPO_ROOT/install.sh" "$REPO_ROOT/install.sh" "xian-commit/install.sh"
-    remove_managed_link "$XIAN_COMMIT_HUB/prompts" "$REPO_ROOT/prompts" "$REPO_ROOT/prompts" "xian-commit/prompts"
-    remove_managed_link "$XIAN_COMMIT_HUB/references" "$REPO_ROOT/references" "$REPO_ROOT/references" "xian-commit/references"
-    remove_managed_link "$XIAN_COMMIT_HUB/hooks" "$REPO_ROOT/hooks" "$REPO_ROOT/hooks" "xian-commit/hooks"
-    remove_managed_link "$XIAN_COMMIT_HUB/policy.example.conf" "$REPO_ROOT/policy.example.conf" "$REPO_ROOT/policy.example.conf" "xian-commit/policy.example.conf"
-    if [ "$DRY_RUN" -eq 1 ]; then
-        echo "  would remove: xian-commit hub marker -> $XIAN_COMMIT_HUB/$MANAGED_MARKER"
-    else
-        rm -f "$XIAN_COMMIT_HUB/$MANAGED_MARKER"
-        rmdir "$XIAN_COMMIT_HUB" 2>/dev/null || echo "  kept: xian-commit hub contains non-managed files -> $XIAN_COMMIT_HUB" >&2
-    fi
-}
-
-uninstall_all() {
-    echo "xian-commit: 移除用户级 Agent skill 同步"
-    for product_root in $(product_roots); do
-        product_dir=${product_root%%:*}
-        product_label=${product_root##*:}
-        remove_managed_link "$product_dir/xian-commit" "../../.agents/skills/xian-commit" "$XIAN_COMMIT_HUB" "$product_label/xian-commit"
-        for skill_name in $SKILL_NAMES; do
-            remove_managed_link "$product_dir/$skill_name" "../../.agents/skills/$skill_name" "$AGENTS_ROOT/$skill_name" "$product_label/$skill_name"
-        done
-    done
-    for skill_name in $SKILL_NAMES; do
-        remove_managed_link "$AGENTS_ROOT/$skill_name" "$REPO_ROOT/.codex/skills/$skill_name" "$REPO_ROOT/.codex/skills/$skill_name" "agents/$skill_name"
-    done
-    remove_xian_commit_hub
-    if [ "$FAILED" -ne 0 ]; then
-        echo "sync-global: 部分受管链接移除失败。" >&2
-        exit 1
-    fi
-    if [ "$DRY_RUN" -eq 1 ]; then
-        echo "sync-global: dry-run 完成，未写入文件。"
-    else
-        echo "sync-global: 用户级同步已移除；外部文件和目录保持不动。"
-    fi
-}
-
-case "$MODE" in
-    install)
-        install_all
-        ;;
-    status)
-        status_all
+done < "$TEMP/old"
+if [ "$MODE" = uninstall ]; then
+    if [ "$KEEP_HUB" -eq 1 ]; then
+        echo "Shared hub retained for borrowed product links; remove those manually before retrying uninstall."
         exit 0
-        ;;
-    verify)
-        verify_all
-        ;;
-    uninstall)
-        uninstall_all
-        ;;
-esac
+    fi
+    if awk -F '\t' '$1=="D" && $2=="owned" {found=1} END {exit !found}' "$TEMP/old"; then
+        rmdir "$TARGET_HOME/$HUB" 2>/dev/null || true
+    fi
+    [ ! -f "$STATE" ] || rm -f "$STATE"
+    echo "Uninstalled recorded owned links; external and modified files preserved."
+    exit 0
+fi
+if [ "$MIGRATE_HUB" -eq 1 ]; then
+    for asset in SKILL.md install.sh prompts references hooks policy.example.conf; do
+        if [ -L "$TARGET_HOME/$HUB/$asset" ]; then unlink "$TARGET_HOME/$HUB/$asset"; fi
+    done
+    if [ -f "$LEGACY" ] && [ ! -L "$LEGACY" ]; then rm -f "$LEGACY"; fi
+    rmdir "$TARGET_HOME/$HUB"
+fi
+while IFS="$TAB" read -r kind owner rel target; do
+    [ "$owner" = owned ] || continue
+    if [ "$kind" = D ]; then mkdir -p "$TARGET_HOME/$rel"; continue; fi
+    if matches "$kind" "$rel" "$target"; then continue; fi
+    mkdir -p "$TARGET_HOME/${rel%/*}"
+    if [ -L "$TARGET_HOME/$rel" ]; then unlink "$TARGET_HOME/$rel"; fi
+    ln -s "$target" "$TARGET_HOME/$rel"
+    echo "linked: $rel"
+done < "$TEMP/next"
+STATE_TEMP=$(mktemp "$TARGET_HOME/.agents/.xian-commit-manifest.XXXXXX")
+cp "$TEMP/next" "$STATE_TEMP"
+mv -f "$STATE_TEMP" "$STATE"
+if [ "$ADOPT_LEGACY" -eq 1 ] && [ -f "$LEGACY" ] && [ ! -L "$LEGACY" ]; then rm -f "$LEGACY"; fi
+echo "Installed xian-commit only. Restart Agent sessions to refresh discovery."

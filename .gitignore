@@ -1,9 +1,3 @@
-# xian-commit local/runtime ignores
-.xian-harness/runtime/
-.xian-harness/cache/
-.xian-harness/local/
-.xian-relay/
-
 # editor / OS noise
 *.tmp
 *.swp

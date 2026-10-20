@@ -10,11 +10,14 @@ xian-commit 是面向 code agent 的 Git 交付治理资产集合。你(AI agent
 <!-- xian-commit:global-guard -->
 ## 项目守卫
 
-本 skill 可能来自工程级安装,也可能来自用户级全局同步。开始前先确认当前仓库是否已安装 xian-commit 工程资产:
+本 skill 可能来自工程级安装,也可能来自用户级全局同步。先用 `git rev-parse --show-toplevel` 定位仓库根目录,不要以当前子目录或其他工具的目录推断安装状态:
 
-- 存在 `.xian-commit/config` 或 `.xian-harness/`:当前仓库已启用 xian-commit,按本文完整流程执行;hooks 和 policy 以当前仓库为准。
-- 两者都不存在:当前仓库未安装 xian-commit。只应用通用提交纪律(细粒度 commit、中文标题与正文、禁止 `--no-verify`、未经授权不 push),不要读取不存在的 `.xian-commit/config`,不要声称 Git hooks 已生效。提示用户先使用 xian-commit 源仓库的 `install.sh` 完成工程级安装;若已做用户级同步,可直接运行 `sh ~/.agents/skills/xian-commit/install.sh`。
-- 不在 Git 仓库内:不要使用本 skill 执行 Git 交付。
+- 不在 Git 仓库内:不要执行 Git 交付。
+- 根目录没有 `.xian-commit/config`:只应用通用提交纪律(细粒度 commit、中文标题与正文、禁止 `--no-verify`、未经授权不 push),不要读取不存在的配置。
+- 根目录有 `.xian-commit/config`:读取其中的项目 policy,但这不证明 hooks 已安装。`install.sh skill` 就会创建配置而不安装 hooks。
+- 只有只读检查确认 Git 的有效 hooks 路径中四个 hooks 可执行且与本产品源文件一致,才能称其为当前版本。使用源仓库或全局 Skill 中的 `references/check-project.sh`;输出 `hooks=unverified` 时只说明尚未确认,不得声称拦截已生效。项目 Skill 副本未携带 hooks 源文件时,应从原安装源检查。自定义 hook 串联需单独检查,不要自动覆盖。
+
+需要确定性防护时,提示用户从目标工程运行本产品的 `install.sh` 和 `install.sh verify`;全局安装后可用 `sh ~/.agents/skills/xian-commit/install.sh`。缺少工程资产不妨碍使用通用提交纪律,也不要求安装任何治理框架。
 
 用户级全局同步只提供 skill 发现,不会安装 hooks、policy 或项目级状态。
 

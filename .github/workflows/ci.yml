@@ -19,7 +19,7 @@ jobs:
 
       - name: Verify shell scripts syntax
         run: |
-          for f in hooks/* install.sh tests/*.sh; do
+          for f in hooks/* install.sh sync-global.sh references/*.sh scripts/test/*.sh tests/*.sh; do
             [ -f "$f" ] || continue
             sh -n "$f" || { echo "syntax error in $f"; exit 1; }
           done
