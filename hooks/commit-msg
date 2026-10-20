@@ -50,6 +50,11 @@ errors=""
 # 提取首行
 first_line=$(printf '%s\n' "$MSG" | awk 'NR==1')
 
+# Git 生成的 merge/revert message 不适用普通提交格式。
+case "$first_line" in
+    "Merge "*|"Revert \""*) exit 0 ;;
+esac
+
 # 校验 1: 首行有冒号分隔的 type
 case "$first_line" in
     *:*) ;;
@@ -103,7 +108,7 @@ if [ "$TITLE_LANGUAGE" = "zh" ]; then
 fi
 
 # 校验 6: 无 emoji(perl 检测 Unicode emoji 范围,匹配则输出 yes)
-emoji_detected=$(printf '%s' "$MSG" | perl -CSD -ne 'if (/[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}\x{1F000}-\x{1F0FF}]/) { print "yes"; exit }')
+emoji_detected=$(printf '%s' "$MSG" | perl -CSD -ne 'if (/[\p{Extended_Pictographic}\x{1F1E6}-\x{1F1FF}\x{20E3}]/) { print "yes"; exit }')
 if [ -n "$emoji_detected" ]; then
     errors="$errors
   - message 含 emoji(禁止)"

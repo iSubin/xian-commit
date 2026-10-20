@@ -53,7 +53,16 @@ if [ -z "$GIT_DIR" ]; then
 fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-HOOKS_DST=$(cd "$GIT_DIR" && pwd)/hooks
+case "$MODE" in
+    all|update|hooks|verify)
+        if git config --get core.hooksPath >/dev/null 2>&1; then
+            echo "$SKILL_LABEL: core.hooksPath is configured; compose hooks manually." >&2
+            exit 1
+        fi
+        ;;
+esac
+HOOKS_DST=$(git -C "$REPO_ROOT" rev-parse --git-path hooks)
+case "$HOOKS_DST" in /*) ;; *) HOOKS_DST="$REPO_ROOT/$HOOKS_DST" ;; esac
 SKILL_DST="$REPO_ROOT/.codex/skills/$SKILL_ID"
 POLICY_DST="$REPO_ROOT/.$SKILL_ID"
 
@@ -105,7 +114,9 @@ install_hooks() {
         hook_dst="$HOOKS_DST/$hook_name"
         [ -f "$hook_src" ] || continue
         if [ -f "$hook_dst" ] && ! diff -q "$hook_src" "$hook_dst" >/dev/null 2>&1; then
-            cp "$hook_dst" "$hook_dst.pre-$SKILL_ID.bak"
+            if [ ! -e "$hook_dst.pre-$SKILL_ID.bak" ]; then
+                cp "$hook_dst" "$hook_dst.pre-$SKILL_ID.bak"
+            fi
         fi
         cp "$hook_src" "$hook_dst"
         chmod +x "$hook_dst"

@@ -95,9 +95,8 @@ install_hooks() {
     INSTALLED=""
     BACKED_UP=""
 
-    for hook_src in "$HOOKS_SRC"/*; do
-        [ -f "$hook_src" ] || continue
-        hook_name=$(basename "$hook_src")
+    for hook_name in pre-commit commit-msg post-commit pre-push; do
+        hook_src="$HOOKS_SRC/$hook_name"
         hook_dst="$HOOKS_DST/$hook_name"
         if [ -f "$hook_dst" ] && ! diff -q "$hook_src" "$hook_dst" >/dev/null 2>&1; then
             backup="${hook_dst}.pre-xian-commit.bak"
@@ -370,12 +369,6 @@ case "$MODE" in
         ;;
 esac
 
-echo ""
-echo "卸载:"
-echo "  rm -rf $CODEX_SKILL_DST"
-echo "  rm -rf $CLAUDE_SKILL_DST"
-echo "  rm -rf $POLICY_DST"
-echo "  rm -f $HOOKS_DST/{pre-commit,commit-msg,post-commit,pre-push}"
 echo ""
 echo "安装状态:sh $SCRIPT_DIR/install.sh status"
 echo "更新:sh $SCRIPT_DIR/install.sh update"

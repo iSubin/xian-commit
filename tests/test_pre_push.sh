@@ -6,18 +6,18 @@ PROJECT_ROOT="$1"
 . "$PROJECT_ROOT/tests/lib.sh"
 
 REMOTE_REPO=$(mktemp -d)
-git init -q "$REMOTE_REPO.git" --bare
+git -c init.defaultBranch=master init -q "$REMOTE_REPO/remote.git" --bare
 
 # 用例 1: 首次 push 应通过
 TMP=$(mktemp -d)
 cd "$TMP"
-git init -q
+git -c init.defaultBranch=master init -q
 git config user.email "test@xian-commit.test"
 git config user.name "xian-commit-test"
 git config commit.gpgsign false
 cp "$PROJECT_ROOT/hooks/pre-push" ".git/hooks/pre-push"
 chmod +x ".git/hooks/pre-push"
-git remote add origin "$REMOTE_REPO.git"
+git remote add origin "$REMOTE_REPO/remote.git"
 echo "x" > a.txt
 git add a.txt
 git commit -q -m "feat: 初始提交
@@ -31,7 +31,7 @@ rm -rf "$TMP"
 # 用例 2: ahead 远端(再 push 一个 commit)应通过
 TMP=$(mktemp -d)
 cd "$TMP"
-git clone -q "$REMOTE_REPO.git" .
+git clone -q "$REMOTE_REPO/remote.git" .
 git config user.email "test@xian-commit.test"
 git config user.name "xian-commit-test"
 git config commit.gpgsign false
@@ -51,7 +51,7 @@ rm -rf "$TMP"
 # 在 TMP1 加新 commit 推到 remote,然后 TMP2(原 local)有本地 commit,尝试 push 应被 behind 拦
 TMP1=$(mktemp -d)
 cd "$TMP1"
-git clone -q "$REMOTE_REPO.git" .
+git clone -q "$REMOTE_REPO/remote.git" .
 git config user.email "test@xian-commit.test"
 git config user.name "xian-commit-test"
 git config commit.gpgsign false
@@ -66,7 +66,7 @@ cd /tmp || true
 # 回到原 remote 状态,创建一个落后于 remote 的 local repo
 TMP2=$(mktemp -d)
 cd "$TMP2"
-git clone -q "$REMOTE_REPO.git" .
+git clone -q "$REMOTE_REPO/remote.git" .
 git config user.email "test@xian-commit.test"
 git config user.name "xian-commit-test"
 git config commit.gpgsign false
@@ -87,7 +87,7 @@ rm -rf "$TMP1" "$TMP2"
 # 用例 4: policy protected branch 应拦截
 TMP=$(mktemp -d)
 cd "$TMP"
-git clone -q "$REMOTE_REPO.git" .
+git clone -q "$REMOTE_REPO/remote.git" .
 git config user.email "test@xian-commit.test"
 git config user.name "xian-commit-test"
 git config commit.gpgsign false

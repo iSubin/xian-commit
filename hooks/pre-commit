@@ -29,15 +29,8 @@ policy_value() {
     ' "$POLICY_FILE"
 }
 
-# allowlist 先于 denylist 生效,用于协议证据或项目明确允许的审计产物。
-ALLOW_PATTERNS="
-docs/xian-harness/changes/*/.change-transition.log
-docs/xian-harness/changes/*/verify/evidence/logs/*.log
-docs/xian-harness/evidence/*/*.log
-cases/*/docs/xian-harness/changes/*/.change-transition.log
-cases/*/docs/xian-harness/changes/*/verify/evidence/logs/*.log
-cases/*/docs/xian-harness/evidence/*/*.log
-"
+# 默认不豁免私有生态路径，由目标工程的 policy 明确选择。
+ALLOW_PATTERNS=""
 
 configured_allow=$(policy_value "path.allow")
 if [ -n "$configured_allow" ]; then
@@ -63,6 +56,7 @@ id_rsa
 id_dsa
 id_ed25519
 id_ecdsa
+*.pem
 *_tmp.py
 *_tmp.*
 *.bak
@@ -124,7 +118,7 @@ fi
 # -z 让 Git 以 NUL 分隔原始路径，xargs -0 再把每个路径完整传入内部匹配模式。
 staged_list=$(mktemp 2>/dev/null || mktemp -t xian-commit-staged)
 trap 'rm -f "$staged_list"' 0 1 2 3 15
-if ! git -c core.quotepath=false diff --cached --name-only -z > "$staged_list"; then
+if ! git -c core.quotepath=false diff --cached --name-only --diff-filter=d -z > "$staged_list"; then
     echo "xian-commit pre-commit: 无法读取 staged 文件。" >&2
     exit 1
 fi

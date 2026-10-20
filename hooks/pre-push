@@ -81,7 +81,7 @@ remote_name=${upstream%%/*}
 remote_branch=${upstream#*/}
 
 # 用 ls-remote 实时查 remote 状态
-remote_head=$(git ls-remote "$remote_name" "$remote_branch" 2>/dev/null | awk '{print $1}')
+remote_head=$(git ls-remote "$remote_name" "refs/heads/$remote_branch" 2>/dev/null | awk '{print $1}')
 
 # 网络问题或 remote 不存在,放行(不阻断 push)
 if [ -z "$remote_head" ]; then

@@ -121,7 +121,7 @@ git commit -m "feat: 测试普通日志文件提交
 expect_pass "普通 app.log/debug.log 应允许提交" $?
 cleanup_repo "$TMP"
 
-# 用例 11: Harness 协议证据日志应允许提交
+# 用例 11: 私有生态路径不再有内置豁免
 TMP=$(setup_repo "$PROJECT_ROOT" pre-commit commit-msg)
 mkdir -p \
   "$TMP/docs/xian-harness/changes/demo-change/verify/evidence/logs" \
@@ -135,11 +135,13 @@ echo "case transition" > "$TMP/cases/base-case/docs/xian-harness/changes/demo-ch
 echo "case verify log" > "$TMP/cases/base-case/docs/xian-harness/changes/demo-change/verify/evidence/logs/run-002.log"
 echo "case evidence log" > "$TMP/cases/base-case/docs/xian-harness/evidence/demo-change/run-002.log"
 cd "$TMP"
+mkdir .xian-commit
+printf 'path.deny=*.log\n' > .xian-commit/config
 git add docs cases
 git commit -m "feat: 测试 Harness 证据日志
 
 Harness 协议证据日志是合法审计产物,默认应允许提交。" 2>err.log
-expect_pass "Harness evidence log 应允许提交" $?
+expect_fail "私有生态日志也必须服从项目 deny policy" $?
 cleanup_repo "$TMP"
 
 # 用例 12: policy path.allow 可扩展允许路径

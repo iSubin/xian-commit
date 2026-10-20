@@ -79,7 +79,7 @@ fi
 
 remote_name=${upstream%%/*}
 remote_branch=${upstream#*/}
-remote_head=$(git ls-remote "$remote_name" "$remote_branch" 2>/dev/null | awk '{print $1}')
+remote_head=$(git ls-remote "$remote_name" "refs/heads/$remote_branch" 2>/dev/null | awk '{print $1}')
 if [ -z "$remote_head" ]; then
     skip_auto_push "无法读取 upstream $upstream 的 remote head。"
 fi
@@ -104,11 +104,11 @@ fi
 cat >&2 <<EOF
 xian-commit post-commit: auto-safe 条件满足,执行普通 git push。
 EOF
-if ! git push "$remote_name" "HEAD:$remote_branch"; then
+if ! git push "$remote_name" "HEAD:refs/heads/$remote_branch"; then
     cat >&2 <<EOF
 xian-commit post-commit: auto-safe push 失败,本地 commit 已完成。
 请手动检查后执行:
-  git push "$remote_name" "HEAD:$remote_branch"
+  git push "$remote_name" "HEAD:refs/heads/$remote_branch"
 EOF
 fi
 

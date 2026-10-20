@@ -21,8 +21,8 @@ setup_auto_push_repo() {
     tmp=$(mktemp -d 2>/dev/null || mktemp -d -t xian-post-commit)
     remote="$tmp/remote.git"
     work="$tmp/work"
-    git init -q "$remote" --bare
-    git init -q "$work"
+    git -c init.defaultBranch=master init -q "$remote" --bare
+    git -c init.defaultBranch=master init -q "$work"
     cd "$work" || return 1
     git config user.email "test@xian-commit.test"
     git config user.name "xian-commit-test"
@@ -107,10 +107,10 @@ cleanup_repo "$TMP"
 TMP=$(mktemp -d 2>/dev/null || mktemp -d -t xian-post-commit-no-upstream)
 REMOTE="$TMP/remote.git"
 WORK="$TMP/work"
-git init -q "$REMOTE" --bare
-git init -q "$WORK"
+git -c init.defaultBranch=master init -q "$REMOTE" --bare
+git -c init.defaultBranch=master init -q "$WORK"
 cd "$WORK"
-git init -q
+git -c init.defaultBranch=master init -q
 git config user.email "test@xian-commit.test"
 git config user.name "xian-commit-test"
 git config commit.gpgsign false

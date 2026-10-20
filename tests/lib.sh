@@ -55,7 +55,7 @@ setup_repo() {
     shift
     tmp=$(mktemp -d 2>/dev/null || mktemp -d -t xian)
     cd "$tmp" || return 1
-    git init -q
+    git -c init.defaultBranch=master init -q
     git config user.email "test@xian-commit.test"
     git config user.name "xian-commit-test"
     git config commit.gpgsign false
