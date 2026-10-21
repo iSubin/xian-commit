@@ -144,5 +144,25 @@ run install
 expect_fail "不通过父目录软链写入其他位置" $?
 test ! -e "$TMP/external/skills"
 expect_pass "外部位置保持不变" $?
+
+# 清单必须是普通文件；目录不能被 mv 当作容器而误报成功。
+TARGET="$TMP/manifest-directory"
+STATE="$TARGET/.agents/xian-commit-sync.tsv"
+mkdir -p "$STATE"
+printf keep > "$STATE/user-file"
+for mode in install status verify uninstall; do
+    run "$mode"
+    expect_fail "$mode 拒绝目录形式的清单" $?
+    expect_contains "$mode 明确报告清单类型冲突" "$(cat "$TMP/output")" "manifest is not a regular file"
+done
+run install --dry-run
+expect_fail "安装预演也拒绝目录形式的清单" $?
+test ! -e "$TARGET/.agents/skills" && test ! -e "$TARGET/.codex"
+expect_pass "清单类型冲突时不创建任何发现入口" $?
+test "$(ls -A "$STATE")" = user-file && test "$(cat "$STATE/user-file")" = keep
+expect_pass "清单目录及用户内容保持原样，不写入隐藏清单" $?
+test ! -e "$TARGET/.agents/.xian-commit-sync.lock"
+expect_pass "清单类型冲突不遗留锁" $?
+
 cleanup_repo "$TMP"
 summary

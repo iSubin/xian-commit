@@ -47,7 +47,14 @@ trap 'exit 130' INT
 trap 'exit 143' TERM HUP
 : > "$TEMP/old"
 HAD_STATE=0
-if [ -L "$STATE" ]; then echo "conflict: manifest is a symlink" >&2; exit 1; fi
+validate_manifest_type() {
+    if [ -L "$STATE" ]; then echo "conflict: manifest is a symlink" >&2; exit 1; fi
+    if [ -e "$STATE" ] && [ ! -f "$STATE" ]; then
+        echo "conflict: manifest is not a regular file: $STATE" >&2
+        exit 1
+    fi
+}
+validate_manifest_type
 if [ -f "$STATE" ]; then cp "$STATE" "$TEMP/old"; HAD_STATE=1; fi
 
 # 限定 manifest 的作用域；即使文件损坏也不能删除其他路径。
@@ -198,6 +205,7 @@ if [ "$DRY_RUN" -eq 1 ]; then echo "dry-run: $MODE; no files written"; exit 0; f
 mkdir -p "$TARGET_HOME/.agents"
 LOCK="$TARGET_HOME/.agents/.xian-commit-sync.lock"
 if ! mkdir "$LOCK" 2>/dev/null; then LOCK=""; echo "Another sync is running (or a stale lock needs inspection)." >&2; exit 1; fi
+validate_manifest_type
 if [ -f "$STATE" ]; then
     cmp -s "$STATE" "$TEMP/old" || { echo "Manifest changed; retry." >&2; exit 1; }
 elif [ -s "$TEMP/old" ]; then echo "Manifest disappeared; retry." >&2; exit 1; fi
