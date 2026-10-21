@@ -175,6 +175,8 @@ EOF
 
 **不要绕过**(不加 `--no-verify`)。修 message 或修 staged 文件,重新 commit。
 
+Merge/Revert 消息仅在对应的 Git 操作状态仍存在且有效时豁免普通格式校验。操作完成后,保留默认 `Merge ...` / `Revert "..."` 消息的 `git commit --amend --no-edit` 会被拒绝;这是有意保留的严格边界,不是 hooks 安装故障。已获授权的 amend 应改用符合项目 policy 的消息(默认要求合法 type、中文标题与正文),不要仅因标题与 HEAD 一致就放行。普通合规消息的 `--amend --no-edit` 不受影响;对已发布提交的 amend 仍须按下文取得明确授权。
+
 ### 6. 全部 commit 完成后
 
 读取 `.xian-commit/config` 的 `push.mode`:

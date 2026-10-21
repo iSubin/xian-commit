@@ -207,11 +207,13 @@ node scripts/check-agent-discovery.mjs codex claude
 | Hook | 拦截/执行内容 | 拒绝或回退行为 |
 | --- | --- | --- |
 | `pre-commit` | 检查 staged 路径，拦截敏感文件、临时文件和项目 deny 规则 | 拒绝 commit，并提示用 `git reset HEAD <files>` 移出暂存区 |
-| `commit-msg` | 校验类型、中文标题、正文、重复类型与 emoji；放行 `Merge ` / `Revert "` 开头的 Git 生成消息 | 拒绝普通不合规 commit，按提示重新提交 |
+| `commit-msg` | 校验类型、中文标题、正文、重复类型与 emoji；仅在对应 Git 操作状态有效时豁免 Merge/Revert 消息 | 拒绝普通不合规 commit，按提示重新提交 |
 | `post-commit` | 在 `auto-safe` 条件全部成立时执行普通 push | 条件不足时跳过；push 失败只报告，本地 commit 保持成功 |
 | `pre-push` | 仅检查当前检出的普通分支及其 upstream 的 protected branch、`never` policy 与落后状态 | 拒绝或提示先 `git pull --rebase`；无 upstream 时仅提示首次 push 设置 upstream |
 
 这些 hooks 同样作用于人手输入的 `git commit` / `git push`，不是只对 Agent 生效。
+
+**amend 的严格边界：**完成 merge/revert 后，Git 的对应操作状态已清除；此时保留默认 `Merge ...` / `Revert "..."` 消息执行 `git commit --amend --no-edit` 会被拒绝。需要 amend 时，应改用符合项目 policy 的提交信息（默认要求合法 type、中文标题与正文）；普通合规消息的 `--amend --no-edit` 不受影响。这是为避免普通提交伪造标题而有意保留的限制，不要通过 `--no-verify` 绕过，也不要仅因标题与 HEAD 一致就放行。Agent 修改已发布提交仍须取得明确授权。
 
 路径检查支持子目录、中文、空格和换行文件名，并允许删除已跟踪的敏感文件；默认拒绝 `*.pem` 等私钥路径。删除 Git 中的文件不代表密钥已经从历史中清除，泄露后的凭据仍需轮换。
 

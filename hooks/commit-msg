@@ -50,9 +50,16 @@ errors=""
 # 提取首行
 first_line=$(printf '%s\n' "$MSG" | awk 'NR==1')
 
-# Git 生成的 merge/revert message 不适用普通提交格式。
+# 只有对应 Git 操作进行中才豁免；普通提交不能靠标题伪装。
+# 检查实际状态文件，避免把名为 MERGE_HEAD/REVERT_HEAD 的分支当作状态。
+operation_in_progress() {
+    state_file=$(git rev-parse --git-path "$1" 2>/dev/null) || return 1
+    [ -s "$state_file" ] || return 1
+    git rev-parse --verify -q "$1^{commit}" >/dev/null 2>&1
+}
 case "$first_line" in
-    "Merge "*|"Revert \""*) exit 0 ;;
+    "Merge "*) operation_in_progress MERGE_HEAD && exit 0 ;;
+    "Revert \""*\") operation_in_progress REVERT_HEAD && exit 0 ;;
 esac
 
 # 校验 1: 首行有冒号分隔的 type
