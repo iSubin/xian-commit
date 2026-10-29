@@ -2,72 +2,61 @@
 
 [简体中文](README.md) · [![CI](https://github.com/iSubin/xian-commit/actions/workflows/ci.yml/badge.svg)](https://github.com/iSubin/xian-commit/actions/workflows/ci.yml) · [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**xian-commit is an installable Git delivery governance Skill for AI Coding Agents such as Codex, Claude Code, and Qoder.**
+**A Git delivery governance Skill for AI Coding Agents such as Codex, Claude Code, and Qoder.**
 
-It keeps Agents on standard Git while adding configurable, deterministic checks for staged scope, commit messages, and push boundaries. The bundled Git hooks are the Skill's deterministic enforcement layer.
+xian-commit keeps Agents on standard `git` while adding configurable, deterministic checks at three points:
 
-It is not a Node/Python package or a resident service. Runtime prerequisites are Git, a POSIX-compatible shell with standard Unix tools, and Perl for Chinese- and emoji-related commit-message checks.
+- **Staged scope**: blocks sensitive files, temporary files, and project-defined deny paths;
+- **Commit messages**: validates type, Chinese title, body, duplicate prefixes, and emoji;
+- **Push boundaries**: allows automatic non-force pushes only when safety conditions hold, and rechecks behind status, protected branches, and `never` policy before pushing.
 
-> **Installation scope: project-level enforcement plus optional user-level discovery.**
-> `install.sh` writes the Skill, policy, and hooks into the current target Git repository only. It does not write directly into `~/.codex/skills`, `~/.claude/skills`, or `~/.qoder-cn/skills`. Every project that needs hooks/policy must still be installed separately.
-> `sync-global.sh` is optional: it registers only this product's `xian-commit` Skill, not other Skills installed in the source project. It does not install hooks or policy, and does not replace project-level installation. This project does not require Harness.
+It consists of an Agent Skill, project policy, and four Git hooks: the Skill owns the workflow and judgment, policy stores rules, and hooks enforce them at Git invocation points.
+
+> **Installation scope**: `install.sh` acts only on the current target repository. `sync-global.sh` only exposes the Skill for user-level discovery; it does not install hooks or policy. Every repository that needs hooks must be installed separately.
+>
+> **Security boundary**: these are client-side guardrails, not server-side enforcement. `git commit --no-verify` can still bypass the hooks. Configure branch protection, permissions, and CI on the remote as the authoritative boundary.
+
+## Contents
+
+- [Why xian-commit](#why-xian-commit)
+- [Quick start](#quick-start)
+- [The four Git guardrails](#the-four-git-guardrails)
+- [Configuration](#configuration)
+- [Multiple Agents and platforms](#multiple-agents-and-platforms)
+- [Recommended project integration](#recommended-project-integration)
+- [How it works](#how-it-works)
+- [How it differs from common tools](#how-it-differs-from-common-tools)
+- [Repository layout](#repository-layout)
+- [Scope and limitations](#scope-and-limitations)
+- [Development and contributing](#development-and-contributing)
 
 ## Why xian-commit
 
-AI Coding Agents can write code, but still make concrete and expensive mistakes at the last delivery step: staging runtime or sensitive files, writing duplicate-type titles such as `feat: feat ...`, or pushing without first checking whether the upstream has diverged.
+AI Coding Agents can write code, but they still make expensive mistakes at the final delivery step: staging runtime artifacts or secrets, writing duplicate titles such as `feat: feat ...`, or pushing after the upstream has diverged.
 
-`xian-commit` separates these responsibilities:
+xian-commit separates the responsibilities:
 
-- The Agent Skill attributes changes, plans commits, and writes commit messages.
-- Policy stores rules only—not runtime state or verbal authorization.
-- Git hooks enforce deterministic local boundary checks.
+- The Agent Skill attributes changes, plans commits, and writes commit messages;
+- Policy stores rules only, not runtime state or verbal authorization;
+- Git hooks perform deterministic local boundary checks;
 - A remote push is the final external side effect, handled from policy and Git facts.
 
-It is for Git delivery by AI Coding Agents—not a general Git client or a business-quality gate.
+It focuses on how changes enter Git safely and explainably, not on whether a feature is complete.
 
-## Installation and updates
+## Quick start
 
-### Install hooks through the Skill (recommended with a global Skill)
+### Requirements
 
-Once the Agent can discover `xian-commit`, ask it from the target project:
+- Git;
+- A POSIX-compatible shell plus standard Unix tools such as `awk`, `sed`, `xargs`, and `mktemp`;
+- Perl for Chinese-title and emoji checks;
+- Optional: Node.js, only for the local Agent discovery test.
 
-> Use xian-commit to install Git hooks for this project. Check existing hooks first, preserve existing configuration, and verify the installation. Do not commit or push.
+CI runs on Ubuntu and macOS; Windows support is not claimed.
 
-The Skill locates the target repository and its installation source, then runs `references/check-project.sh` first. If the result is already `hooks=current`, it skips installation. Only when initial setup, an update, or a repair is needed does it resolve conflicts, call `install.sh hooks`, and verify again. No additional project-level Skill copy is needed. If the Skill is not globally installed yet, complete “User-level installation across Agents” below and reopen the Agent session first.
+### Option 1: Full project-level installation
 
-You can also ask “Use xian-commit to check whether this project's hooks are installed” or “Use xian-commit to update this project's hooks to the local source version.” Checks are read-only. Updates follow the same conflict checks and do not automatically pull the source repository, commit, or push.
-
-For the manual equivalent, start with a read-only check from the target project:
-
-```sh
-cd /path/to/your-project
-sh ~/.agents/skills/xian-commit/references/check-project.sh
-```
-
-If all four hooks report `current` with a final `hooks=current`, stop here without installing. Otherwise, identify the specific cause and inspect existing hooks and `core.hooksPath`. Only when installation, an update, or a repair is needed and overwrite conflicts are resolved, run from the same target project:
-
-```sh
-sh ~/.agents/skills/xian-commit/install.sh hooks
-sh ~/.agents/skills/xian-commit/references/check-project.sh
-```
-
-- `hooks` installs only the four hooks. It does not copy the Skill or create or modify `.xian-commit/config`. Without configuration, automatic push stays off; existing policy still applies, including `auto-safe`.
-- All four hooks must report `current`, with a final `hooks=current`, to confirm matching source content and executable permissions at Git's effective hook path. `hooks=unverified` is not a pass, even if the script exits with code 0. This check does not execute hooks or test a real commit.
-- **After a hooks-only installation, use this check script, not `install.sh verify`**: the latter requires project-level Skills and policy. This distinction also applies to the installer's generic closing hints.
-- The Skill explains conflicts with differing existing hooks and obtains replacement approval before proceeding. The installer itself backs up and replaces hooks without chaining them. A configured `core.hooksPath` stops direct installation; existing Husky or similar configuration is not silently removed. Linked worktrees share hooks by default, so installation affects other worktrees of the same repository.
-
-These are local client-side guardrails, not unbypassable server-side enforcement. Install the global Skill once for discovery; install hooks per target repository.
-
-#### No repeated installation or check for every commit
-
-- A local repository normally needs installation only once. Routine commits and pushes do not reinstall hooks. Install for a new clone or machine, or when a hook update or repair is needed.
-- Check once when the Agent first handles the project in a session. Reuse an existing result while no relevant change has been observed. Check again in a new session, after switching projects, or when the result's provenance is unclear.
-- Check again on an explicit check, install, update, or repair request; after changes to hook content, executable permissions, `core.hooksPath` / the effective hook path, the installation source directory or its hook source files; or when an installation problem appears. README / Skill instructions and ordinary application-code changes alone do not require a hook recheck or reinstall.
-- Do not write a permanent “installed” marker or poll in the background. Investigate `hooks=unverified` rather than automatically reinstalling. Reusing an installation check does not stop Git from executing hooks on every commit / push, or skip change attribution, policy, and authorization checks.
-
-### First full installation (project-level Skills, policy, and hooks)
-
-Clone this repository first, then install it in **another target Git repository**:
+Use this when the Agent should discover xian-commit through a project-level Skill. Clone this repository elsewhere, then install from the target repository:
 
 ```sh
 git clone https://github.com/iSubin/xian-commit.git /path/to/xian-commit
@@ -76,96 +65,162 @@ sh /path/to/xian-commit/install.sh
 sh /path/to/xian-commit/install.sh verify
 ```
 
-The default installation writes the Codex and Claude Code Skills, a commit-message prompt, lifecycle reference scripts, policy, and four hooks. An existing `.xian-commit/config` is preserved; installation and updates never overwrite it.
+The default installation writes:
 
-Hooks activate from the next `git commit` or `git push`. If a Codex or Claude Code session is already open, reopen the session in the target project so project-level Skills are rescanned.
+- Project-level Skills for Codex and Claude Code;
+- The commit-message prompt and `references/` helper scripts;
+- `policy.example.conf` and `.xian-commit/config` if it does not already exist;
+- All four Git hooks.
 
-### Update an existing project
+An existing `.xian-commit/config` is preserved. Hooks take effect on the next `git commit` or `git push`. If a Codex or Claude Code session is already open, reopen it so project-level Skills are rescanned.
 
-A fully installed project stores its own project-level Skill, policy, and hooks, so update each integrated project when adopting a newer version. For a global Skill plus hooks-only setup, follow the check-first workflow above when hook source files change, and skip installation if they are still `current`. README / Skill instructions alone do not require hook reinstallation; do not use the full-update commands below for this setup.
+### Option 2: Global Skill plus per-repository hooks (recommended for multiple Agents or repositories)
 
-For a full installation, update the local xian-commit source checkout first, then run the installer from the target project:
-
-```sh
-git -C /path/to/xian-commit pull --ff-only
-
-cd /path/to/your-project
-sh /path/to/xian-commit/install.sh status
-sh /path/to/xian-commit/install.sh update
-sh /path/to/xian-commit/install.sh verify
-```
-
-`status` is read-only and shows which managed resources are missing or differ from the current source version. `update` refreshes the Codex and Claude Code Skills, prompt, references, `policy.example.conf`, and all four hooks. `verify` then checks installation completeness and hook executability. Reopen the Codex or Claude Code session in the target project after updating so the new project-level Skill is loaded.
-
-Overwrite and preservation rules during updates:
-
-- `.xian-commit/config` is the target project's policy. Once created, later installations and updates do not overwrite it.
-- Managed Skills, prompts, references, `policy.example.conf`, and hooks are updated to the current xian-commit source version.
-- When a different same-named hook is first encountered, the installer saves it as `*.pre-xian-commit.bak`. Repeated installations and updates preserve that original backup. The active hook is still updated to the current xian-commit version, and the backup is not chained automatically.
-- Linked worktrees use the shared hooks directory resolved by Git; worktrees of the same main repository do not maintain separate private hook installations.
-- If `git config --show-origin --get core.hooksPath` prints a value, installation, updates, and `verify` fail explicitly. Do not blindly remove an existing Husky or similar configuration just to install xian-commit. First choose which tool owns the hooks, then chain the required behaviors manually.
-
-If `git pull --ff-only` fails because of local changes or divergence, resolve the Git state of the xian-commit source checkout first. Do not force-overwrite the installation source.
-
-### User-level installation across Agents (optional)
-
-To expose the same `xian-commit` Skill across products, run:
+Use this when several projects should share one Skill without copying a project-level Skill into each repository:
 
 ```sh
+# 1. Register the user-level Skill (once)
 sh /path/to/xian-commit/sync-global.sh install
 sh /path/to/xian-commit/sync-global.sh verify
+
+# 2. Install hooks in each target repository
+cd /path/to/your-project
+sh ~/.agents/skills/xian-commit/references/check-project.sh
+sh ~/.agents/skills/xian-commit/install.sh hooks
+sh ~/.agents/skills/xian-commit/references/check-project.sh
 ```
 
-The shared hub is `~/.agents/skills/xian-commit`; the whole directory links to this checkout, preserving a real `SKILL.md` rather than a file symlink that some scanners ignore. All five product entries below are created by default, even if those products are not installed. Use `--agents codex,claude,qoder-cn` to select a subset, and repeat the selection for subsequent `install/status/verify` commands.
+`hooks` installs only the four hooks. It does not copy the Skill or create/modify `.xian-commit/config`. Without configuration, automatic pushes stay off; an existing config, including `auto-safe`, still applies. If you did not install globally, replace `~/.agents/skills/xian-commit` with the actual source path.
 
-| Product / selector | User-level entry |
-| --- | --- |
-| Codex / `codex` | `~/.codex/skills/xian-commit` |
-| Claude Code / `claude` | `~/.claude/skills/xian-commit` |
-| Qoder CN / `qoder-cn` | `~/.qoder-cn/skills/xian-commit` |
-| Qoder / Qoder CLI / `qoder` | `~/.qoder/skills/xian-commit` |
-| QoderWork / `qoderwork` | `~/.qoderwork/skills/xian-commit` |
+You can also ask the Agent directly:
 
-Qoder products do not share a single directory: see the [Qoder CLI documentation](https://docs.qoder.com/cli/Skills) and [QoderWork documentation](https://docs.qoder.com/qoderwork/skills). Directory adapters are not a claim of runtime certification for every version.
+> Use xian-commit to install Git hooks for this project. Check existing hooks first, preserve existing configuration, verify the installation, and do not commit or push.
 
-Common commands:
+The Skill performs a read-only check first and skips installation when the result is already `hooks=current`. It writes only for initial setup, an update, or a repair, and explains conflicts before replacing anything.
 
-| Command | Writes | Purpose |
+### Verify the installation
+
+| Check | Applies to | What it does |
 | --- | --- | --- |
-| `sh sync-global.sh install` | User-level links and ownership manifest | Registers or refreshes `xian-commit` |
-| `sh sync-global.sh status` | No | Shows whether each product entry is current, missing, or conflicting |
-| `sh sync-global.sh verify` | No | Checks links, sources and manifest, not actual Agent loading |
-| `sh sync-global.sh uninstall` | User-level symlinks | Removes only links managed by this tool and preserves external files |
-| `sh sync-global.sh install --dry-run` | No | Previews the sync without writing |
+| `install.sh verify` | Full installation | Checks Skills, prompt, references, config, and hooks, then runs `commit-msg` / `pre-commit` smoke tests; not for hooks-only setups |
+| `references/check-project.sh` | Any installation | Checks policy, Git's effective hooks path, and all four hooks' content and executable bits; require `hooks=current` |
+| `sync-global.sh verify` | Global Skill | Checks user-level links and resources only; it does not verify Agent loading |
 
-Updates, relocation and removal:
+`hooks=unverified` is not a pass, even when the check script exits with code 0. `check-project.sh` compares content and permissions; it does not run a real commit.
 
-- Updating the source checkout changes linked content immediately. Rerun `install`, then `verify`, and restart Agent sessions. Pin the source version or use project-level copies for a fixed version.
-- Ownership is persisted in `~/.agents/xian-commit-sync.tsv`. After moving the source, run `install` from its new location to repair owned links. Missing source files fail verification; `uninstall` still works from any intact copy using the recorded inventory.
-- Reducing `--agents` reconciles retired owned entries. Conflicting real directories or foreign links stop installation before writes. Existing same-target manual links are `borrowed`, not silently adopted, and survive uninstall. A shared hub needed by borrowed product links is preserved until those links are manually removed and uninstall is retried.
+### Update and uninstall
+
+- **Full installation**: update the source checkout first (preferably `git pull --ff-only`), then run `install.sh status`, `install.sh update`, and `install.sh verify` in the target repository. `update` preserves the existing config. If `pull` fails because of local changes or divergence, resolve the source checkout state first; do not force-overwrite the installation source.
+- **Hooks-only**: run `check-project.sh` first. If it still reports `hooks=current`, skip reinstalling; README or ordinary application-code changes do not require a hook reinstall.
+- **Global Skill**: after the source checkout changes, links point to the new content immediately. Run `sync-global.sh install` / `verify` and reopen Agent sessions.
+- **Uninstall**: `install.sh uninstall` removes managed resources while preserving config and hooks whose content was modified by the user. `sync-global.sh uninstall` removes only user-level links managed by this tool.
+
+**Overwrite and conflict rules**: when a same-named hook with different content is first encountered, it is backed up as `*.pre-xian-commit.bak`; that first backup is never overwritten, and the backup is not chained automatically. If `core.hooksPath` is set, `install.sh` modes `all`, `update`, `hooks`, and `verify` fail explicitly to avoid overwriting managers such as Husky. Linked worktrees share hooks by default, so installation affects other worktrees of the same repository.
+
+### Command reference
+
+`install.sh` commands operate on the current target Git repository. User-level discovery is managed separately by `sync-global.sh`, and the two can be used together. Script names in the table omit the source path; run them as `/path/to/xian-commit/...` or through the global hub path.
+
+| Command | Writes to target repository | Purpose |
+| --- | --- | --- |
+| `sh install.sh` / `sh install.sh all` | Yes | Installs all Agent assets, policy, and hooks |
+| `sh install.sh update` | Yes | Updates the same managed resources while preserving config |
+| `sh install.sh hooks` | Yes | Installs only the four Git hooks |
+| `sh install.sh skill` | Yes | Installs only the Codex/Claude Code Skill, prompt, references, and policy (including first-time config) |
+| `sh install.sh verify` | No | Checks a full installation and runs smoke tests; not for hooks-only |
+| `sh install.sh status` | No | Shows whether installed resources match the source |
+| `sh install.sh uninstall` | Yes | Removes managed resources while preserving config and differing hooks |
+| `sh sync-global.sh install` | No (writes user-level links) | Registers or refreshes the user-level Skill |
+| `sh sync-global.sh status` | No | Shows user-level link status |
+| `sh sync-global.sh verify` | No | Checks links, resources, and the ownership manifest |
+| `sh sync-global.sh uninstall` | No (removes user-level links) | Removes only user-level links managed by this tool |
+
+## The four Git guardrails
+
+| Hook | What it intercepts or runs | Rejection or fallback behavior |
+| --- | --- | --- |
+| `pre-commit` | Checks staged paths and blocks sensitive files, temporary files, and project deny rules | Rejects the commit and suggests `git reset HEAD <files>` to unstage them |
+| `commit-msg` | Validates type, Chinese title, body, duplicate types, and emoji; exempts Merge/Revert messages only while the corresponding Git operation state is valid | Rejects ordinary non-compliant commits; fix the message and commit again |
+| `post-commit` | Performs a non-force push when all `auto-safe` conditions hold | Skips when conditions are insufficient; reports push failures while keeping the local commit successful |
+| `pre-push` | Checks the currently checked-out ordinary branch and its upstream for protected branches, `never` policy, and behind status | Rejects or suggests `git pull --rebase`; without an upstream, only suggests setting one on the first push |
+
+These hooks also apply to `git commit` and `git push` entered by people, not only to Agents.
+
+**Default message rules**: allowed types are `feat fix refactor docs test chore`; the title must contain Chinese; a body is required; duplicate type prefixes and emoji are rejected.
+
+**Strict Merge/Revert boundary**: exemption applies only while the corresponding merge/revert operation state exists and is valid. After the operation finishes, `git commit --amend --no-edit` with the default `Merge ...` / `Revert "..."` message is rejected; amend with a message that complies with policy instead. Amending an ordinary compliant message with `--no-edit` is unaffected. This intentional restriction prevents ordinary commits from impersonating those operations; do not bypass it with `--no-verify`.
+
+**Path checks**: path checks handle nested directories, Chinese characters, spaces, and newline-containing filenames, and allow deletion of already tracked sensitive files. By default they block `.xian-relay*`, `*.env`, `*.tmp`, `*.swp`, `*.pem`, `id_rsa`, `.DS_Store`, and similar paths. Deleting a file does not remove secrets from Git history; exposed credentials still need rotation.
+
+## Configuration
+
+The target project's rule file is `.xian-commit/config`; see [policy.example.conf](policy.example.conf) for its format. It stores rules only: do not record change status, Agent plans, or one-time push authorization in it.
+
+| Key | Default | Purpose |
+| --- | --- | --- |
+| `push.mode` | `auto-safe` | `auto-safe`, `explicit-only`, or `never` |
+| `branch.protected` | empty | Branch globs rejected or skipped |
+| `path.allow` | empty | Staged-path globs allowed before deny checks |
+| `path.deny` | empty | Additional staged-path globs to reject |
+| `message.types` | `feat fix refactor docs test chore` | Allowed commit types |
+| `message.title_language` | `zh` | `zh` requires a Chinese title; `any` skips the check |
+| `message.body_required` | `true` | Whether a body after the title is required |
+
+`push.mode` values:
+
+- `auto-safe`: post-commit performs a non-force push only when all safety conditions hold;
+- `explicit-only`: disables automatic pushes; an Agent pushes only after the current user explicitly asks;
+- `never`: pre-push rejects pushes on the currently checked-out ordinary branch; legacy value `disabled` is accepted as an alias.
+
+A config created by a full installation defaults to `auto-safe`. Without a config, post-commit behaves as `explicit-only`. An `auto-safe` push requires all of the following: a commit created in the current run, a clean tracked/staged worktree, an upstream, a readable remote head, local history ahead only (not behind or diverged), and an unprotected current branch. Untracked files alone do not block auto-safe. If any condition fails, no automatic push occurs; if the push itself fails, the local commit remains successful.
+
+`path.allow` takes effect before the built-in denylist and `path.deny`, which suits protocol-evidence paths explicitly owned by a project. Ordinary `*.log` files are not rejected by default; use `path.deny` for stricter rules.
+
+pre-push evaluates only the currently checked-out ordinary branch and its upstream: detached HEAD is passed through, and arbitrary remote target refs in `git push` are not resolved. Therefore, `branch.protected` and `never` are client-side guardrails, not substitutes for server-side branch protection.
+
+## Multiple Agents and platforms
+
+| Product | Project-level support | User-level entry |
+| --- | --- | --- |
+| Codex | `.codex/skills/xian-commit` + hooks | `~/.codex/skills/xian-commit` |
+| Claude Code | `.claude/skills/xian-commit` + hooks | `~/.claude/skills/xian-commit` |
+| Qoder CN | hooks/policy installed by `install.sh` | `~/.qoder-cn/skills/xian-commit` |
+| Qoder / Qoder CLI | hooks/policy installed by `install.sh` | `~/.qoder/skills/xian-commit` |
+| QoderWork | hooks/policy installed by `install.sh` | `~/.qoderwork/skills/xian-commit` |
+| Other Coding Agents | Can use hooks independently | Reuse the hub if the product reads `~/.agents/skills` |
+
+Qoder products do not share a single directory: see the [Qoder CLI documentation](https://docs.qoder.com/cli/Skills) and [QoderWork documentation](https://docs.qoder.com/qoderwork/skills). Directory adapters are not a claim of runtime certification for every product version.
+
+`install.sh` installs project-level Skills only for Codex and Claude Code. Qoder products use the user-level entries in the table above; confirm discovery on the actual product version.
+
+### User-level sync details
+
+The shared hub is `~/.agents/skills/xian-commit`; the whole directory links to the source checkout, preserving a real `SKILL.md` instead of a file symlink that some scanners ignore. All five product entries above are created by default. Links are created even when the product is not installed, but that does not install the product itself. Use `--agents codex,claude,qoder-cn` to select a subset, and repeat the same selection for subsequent `install/status/verify` commands.
+
+- Ownership is recorded in `~/.agents/xian-commit-sync.tsv`. After moving the source checkout, run `install` from its new location to repair owned links. Missing source files make `verify` fail, but `uninstall` still works from any intact copy using the recorded inventory.
+- Reducing `--agents` reconciles only recorded entries that the user has not replaced. Conflicting real directories or foreign links stop installation before writes. Existing same-target manual links are marked `borrowed` and survive uninstall. If borrowed product links still depend on the shared hub, uninstall preserves the hub and asks for manual cleanup before retrying.
 - Older versions have no reliable ownership inventory. After checking the existing `xian-commit` links, run `install --adopt-legacy` once before moving or uninstalling. Only `xian-commit` is adopted; other `xian-*` entries exported by older versions require separate inspection.
-- Use `--home /path/to/home` for an isolated installation; `--dry-run` does not write to the target.
+- `--home /path/to/home` supports an isolated installation; `--dry-run` writes nothing to the target.
 
-Project guard and real discovery:
+### Agent discovery smoke test
 
-- Without `.xian-commit/config`, use generic commit discipline. A config file alone does not prove hooks are active, and another tool's directory is not an installation marker.
-- From the target repository, run `sh ~/.agents/skills/xian-commit/references/check-project.sh` to check Git's effective hook path, executable bits and content of all four hooks. `hooks=unverified` is not evidence of active protection.
-- A successful `sync-global.sh verify` only proves resource accessibility. Open a new product session in a temporary project without a project-level Skill, explicitly invoke `xian-commit`, and ask for its actual source path and project guard result without committing or pushing. This is the runtime discovery smoke test for that product version.
-- Discovery does not guarantee automatic invocation. Explicitly invoke the Skill or add a Git-delivery routing rule to the product's supported user instructions. This script does not rewrite those instructions.
+A successful `sync-global.sh verify` proves only that links and resources are accessible. Reopen a product session, explicitly invoke `xian-commit` in a temporary project without a project-level Skill, and ask for the Skill's actual source path and project guard result without committing or pushing. That is the runtime discovery smoke test for the product version in use.
 
-Optional local discovery test (requires Node.js and the respective CLIs, not additional shell runtime dependencies):
+Optional local automated check (requires Node.js and the respective CLIs):
 
 ```sh
 node scripts/check-agent-discovery.mjs codex claude
 ```
 
-It reads initialization discovery lists in an empty temporary directory, without sending a model prompt or executing Git delivery. In Qoder CN, search for `xian-commit` under Extensions → Installed → Skills. These checks verify discovery, not model invocation; use the smoke test above to check actual invocation.
+It reads initialization discovery lists in an empty temporary directory, without sending a model prompt or executing Git delivery. In Qoder CN, search for `xian-commit` under Extensions → Installed → Skills. These checks verify discovery, not whether the model actually follows the rules.
+
+Discovery does not guarantee automatic invocation. Explicitly invoke the Skill, or add a Git-delivery routing rule to the product's supported user instructions. This script does not rewrite those instructions.
 
 ## Recommended project integration
 
 The installer manages only xian-commit's own Skill, prompt, policy, and hooks. It **does not automatically modify the target project's `AGENTS.md` or `CLAUDE.md`**. Those files belong to the target project and often contain architecture, testing, and business constraints, so rewriting them from an installer would be unsafe.
 
-The recommended integration sequence is:
+Recommended sequence:
 
 1. Ask the Skill to install and check hooks in the target repository. Choose full installation and `verify` only when project-level Skills and policy are also needed.
 2. If `.xian-commit/config` exists, review whether its `auto-safe`, `explicit-only`, or `never` setting fits the team's workflow. Hooks-only without configuration does not automatically push.
@@ -200,26 +255,7 @@ The entry file should only tell the Agent when to use xian-commit. The installed
 
 After installation, an Agent still calls `git add`, `git commit`, and `git push`; there is no separate Git command set to learn. The Skill guides change attribution and commit planning, policy supplies project rules, and hooks provide a backstop at Git invocation points.
 
-With the default `push.mode=auto-safe`, an automatic non-force push requires all of the following: a commit created in the current run, a clean tracked/staged worktree, an upstream, a readable remote head, local history ahead only (not behind or diverged), and an unprotected current branch. Untracked files alone do not block auto-safe.
-
-If any condition is not met, no automatic push occurs. If an auto-safe push fails, the local commit remains successful. With no configuration, automatic pushes fall back conservatively to `explicit-only` behavior.
-
-## Four Git guardrails
-
-| Hook | What it intercepts or runs | Rejection or fallback behavior |
-| --- | --- | --- |
-| `pre-commit` | Checks staged paths and blocks paths matching built-in sensitive-file and temporary-file patterns, plus project deny rules | Rejects the commit and suggests `git reset HEAD <files>` to remove files from the staging area |
-| `commit-msg` | Validates type, Chinese title, body, duplicate types, and emoji | Rejects the commit; fix the message as instructed and commit again |
-| `post-commit` | Performs a non-force push when all `auto-safe` conditions hold | Skips when conditions are insufficient; reports push failures while keeping the local commit successful |
-| `pre-push` | Checks only the currently checked-out ordinary branch and its upstream for protected branches, `never` policy, and behind status | Rejects or suggests `git pull --rebase`; without an upstream, only suggests setting one on the first push |
-
-These hooks also apply to `git commit` and `git push` entered by people; they are not limited to Agents.
-
-Merge/Revert messages are exempt from the ordinary format only while the corresponding Git operation state exists and is valid. **Strict amend boundary:** after a merge or revert finishes, that state is cleared, so `git commit --amend --no-edit` retaining the default `Merge ...` / `Revert "..."` message is rejected. To amend, use a message that complies with the project policy (a valid type, Chinese title, and body by default). Amending an ordinary compliant message with `--no-edit` is unaffected. This intentional restriction prevents ordinary commits from impersonating these operations; do not bypass it with `--no-verify` or exempt a message merely because its title matches HEAD. Agents still need explicit authorization to amend published commits.
-
-Path checks handle nested, non-ASCII, space-containing and newline-containing filenames, reject private-key paths such as `*.pem`, and allow deletion of already tracked sensitive files. Deleting a file does not remove secrets from Git history; exposed credentials still need rotation.
-
-If the target repository already has a same-named hook with different contents, the installer backs it up as `*.pre-xian-commit.bak` and writes the xian-commit hook. Backup hooks are **not automatically chained**; manually compose the two behaviors to suit the target project before use. In a linked worktree, hooks are installed in the shared hooks directory resolved by Git. If `core.hooksPath` is configured, installation, updates, and `verify` fail explicitly to avoid overwriting an existing hook manager such as Husky. Decide which tool owns the hooks first, then either keep the existing configuration and chain the behaviors manually or unset it only after confirming that it is no longer needed.
+A default full installation uses `push.mode=auto-safe`: it pushes automatically only when every safety condition holds. If conditions are insufficient, or no config exists, no automatic push occurs. A remote push is the final external side effect; a failed push does not roll back a completed local commit.
 
 ## How it differs from common tools
 
@@ -231,67 +267,27 @@ If the target repository already has a same-named hook with different contents, 
 
 They can coexist in one repository, but xian-commit claims neither replacement nor automatic interoperability or hook orchestration.
 
-## Configuration
+## Repository layout
 
-The target project's rule file is `.xian-commit/config`; see [policy.example.conf](policy.example.conf) for its format. It stores rules only: do not record change status, Agent plans, or one-time push authorization in it.
-
-| Key | Default | Purpose |
-| --- | --- | --- |
-| `push.mode` | `auto-safe` | `auto-safe`, `explicit-only`, or `never` |
-| `branch.protected` | empty | Rejects or skips matching branch globs |
-| `path.allow` | empty | Staged-path globs allowed before deny checks |
-| `path.deny` | empty | Additional staged-path globs to reject |
-| `message.types` | `feat fix refactor docs test chore` | Allowed commit types |
-| `message.title_language` | `zh` | `zh` requires a Chinese title; `any` skips this check |
-| `message.body_required` | `true` | Whether a body after the title is required |
-
-`push.mode` means:
-
-- `auto-safe`: post-commit automatically performs a non-force push only when all safety conditions hold.
-- `explicit-only`: disables automatic pushes; an Agent pushes only after the current user explicitly asks to push.
-- `never`: pre-push rejects pushes on the currently checked-out ordinary branch; legacy value `disabled` is accepted as an alias for `never`.
-
-`path.allow` takes effect before the built-in denylist and `path.deny`, which suits protocol-evidence paths explicitly owned by a project. Ordinary `*.log` files are not rejected by default; use `path.deny` when stricter rules are needed.
-
-pre-push evaluates only the currently checked-out ordinary branch and its upstream: detached HEAD is passed through, and arbitrary remote target refs in `git push` are not resolved. Therefore, `branch.protected` and `never` are client-side guardrails, not substitutes for server-side branch protection.
-
-## Installation and maintenance commands
-
-The `install.sh` commands operate on the current target Git repository. User-level discovery is managed separately by `sync-global.sh`, and the two can be used together.
-
-| Command | Writes to the target repository | Purpose |
-| --- | --- | --- |
-| `sh /path/to/xian-commit/install.sh` / `sh /path/to/xian-commit/install.sh all` | Yes | Installs all Agent assets, policy, and hooks |
-| `sh /path/to/xian-commit/install.sh update` | Yes | Updates the same managed resources while preserving existing config |
-| `sh /path/to/xian-commit/install.sh hooks` | Yes | Installs only the four Git hooks |
-| `sh /path/to/xian-commit/install.sh skill` | Yes | Installs only the Codex/Claude Code Skill, prompt, reference material, and policy |
-| `sh /path/to/xian-commit/install.sh verify` | No | Checks a full project-level installation and runs a hook smoke test; not for hooks-only |
-| `sh /path/to/xian-commit/references/check-project.sh` | No | Checks effective hook content and executable permissions, including hooks-only setups; read `hooks=current/unverified` |
-| `sh /path/to/xian-commit/install.sh status` | No | Shows installed resources and whether they match source files |
-| `sh /path/to/xian-commit/install.sh uninstall` | Yes | Removes managed resources while preserving config and hooks whose contents differ from the managed versions |
-| `sh /path/to/xian-commit/sync-global.sh install` | No (writes user-level symlinks) | Registers `xian-commit` in the shared hub and selected product directories |
-| `sh /path/to/xian-commit/sync-global.sh status` | No | Read-only view of user-level link status |
-| `sh /path/to/xian-commit/sync-global.sh verify` | No | Checks user-level links, broken links, and conflicts |
-| `sh /path/to/xian-commit/sync-global.sh uninstall` | No (removes user-level symlinks) | Removes only user-level links managed by this tool |
-
-## Agent and platform compatibility
-
-| Target | Support method |
-| --- | --- |
-| Codex | Project-level `.codex/skills/xian-commit` plus hooks; optional user-level entry |
-| Claude Code | Project-level `.claude/skills/xian-commit` plus hooks; optional user-level entry |
-| Qoder / Qoder CN / QoderWork | Project-level hooks/policy via `install.sh`; distinct user-level directories as listed above, with runtime discovery checked on the product version in use |
-| Other Coding Agents | Use the hooks independently, or reuse the user-level hub when the product reads `~/.agents/skills`; automatic recognition by every product is not claimed |
-| Ubuntu | Verified in CI |
-| macOS | Verified in CI |
-
-Current CI runs only on Ubuntu and macOS; Windows support is not claimed.
+```text
+hooks/               Four Git hooks
+install.sh           Project-level install, update, verify, uninstall
+sync-global.sh       User-level Skill sync
+SKILL.md             Agent workflow and delivery boundaries
+prompts/             Commit-message rules
+references/          Helper scripts such as check-project.sh
+scripts/             Agent discovery smoke test
+tests/               Shell regression tests
+policy.example.conf  Policy template
+```
 
 ## Scope and limitations
 
-`xian-commit` does not perform code review, business verification or quality gates, release management, version bumps, or changelog generation. It does not decide whether a feature is complete; it only helps deliver already-confirmed changes through Git safely and explainably.
-
-It also does not automatically modify a target project's `.gitignore`, decide how backup hooks should be orchestrated, or bypass Git remote permissions, branch protection, or conflict resolution. User-level sync only helps Agent products discover Skills; hooks, policy, and project state still come from the project-level installation in each target repository.
+- It does not perform code review, business verification or quality gates, release management, version bumps, or changelog generation.
+- It does not decide whether a feature is complete; it only helps deliver already-confirmed changes through Git safely and explainably.
+- It does not automatically modify a target project's `.gitignore`, decide how backup hooks should be orchestrated, or bypass Git remote permissions, branch protection, or conflict resolution.
+- User-level sync only helps Agent products discover Skills; hooks, policy, and project state still come from the project-level installation in each target repository.
+- It does not require an external Harness or change lifecycle.
 
 ## Development and contributing
 
@@ -301,7 +297,7 @@ Run local tests with [tests/run_tests.sh](tests/run_tests.sh):
 sh tests/run_tests.sh
 ```
 
-CI runs shell syntax checks, tests, and installation smoke tests on `ubuntu-latest` and `macos-latest`. Focused Issues and PRs for reproducible problems are welcome.
+CI runs shell syntax checks, tests, and an installation smoke test on `ubuntu-latest` and `macos-latest`. Focused Issues and PRs for reproducible problems are welcome.
 
 Do not paste credentials, private repository content, or directly exploitable vulnerability details into public Issues.
 
